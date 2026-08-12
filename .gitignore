@@ -1,0 +1,23 @@
+# === IDEs ===
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+
+# === Maven ===
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Config con datos sensibles (cada dev usa el suyo local) ===
+**/application-local.properties
+**/application-secrets.properties
+.env
