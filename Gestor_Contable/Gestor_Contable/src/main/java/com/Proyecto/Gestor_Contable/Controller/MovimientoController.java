@@ -9,9 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-/*
-probando otra vez la rama y los push erda
- */
+
 @RestController
 @RequestMapping("/api/movimiento")
 @CrossOrigin(origins = "*")
