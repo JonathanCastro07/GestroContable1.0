@@ -9,16 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-/*
-todoa valen monda
 
-
-
-
-
-
-
- */
 @RestController
 @RequestMapping("/api/movimiento")
 @CrossOrigin(origins = "*")
