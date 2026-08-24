@@ -12,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/negocio")
 @CrossOrigin(origins = "*")
-public class NegocioController {
+public class NegocioController { //Anderson
     @Autowired
     private NegocioServicio negocioServicio;
     @PostMapping("/crear")
