@@ -12,11 +12,3 @@ public class MovimientoDTO {
     private String tipo;
     private String origen;
 }
-/* BAYUNCA GAY
-
-
-
-
-
-
- */

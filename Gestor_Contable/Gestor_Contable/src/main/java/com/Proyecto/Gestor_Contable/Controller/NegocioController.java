@@ -43,11 +43,3 @@ public class NegocioController { //Anderson
         return ResponseEntity.ok(negocioServicio.verResumenFinanciero(idNegocio));
     }
 }
-
-
-
-
-
-
-
-// Martina
