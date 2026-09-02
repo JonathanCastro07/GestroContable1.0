@@ -1,6 +1,7 @@
 package com.Proyecto.Gestor_Contable.Modelo;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,24 +9,20 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "tipos_movimiento")
+@Document(collection = "tipos_movimiento")
 public class TipoMovimiento implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long idTipo;
+    private String idTipoMovimiento;
 
     private String nombre;  // INGRESO, EGRESO, GASTO
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private NaturalezaMovimiento naturaleza;  // DEBITO o CREDITO
 
     public TipoMovimiento() {}
 
-    public TipoMovimiento(Long idTipo, String nombre, NaturalezaMovimiento naturaleza) {
-        this.idTipo = idTipo;
+    public TipoMovimiento(String idTipoMovimiento, String nombre, NaturalezaMovimiento naturaleza) {
+        this.idTipoMovimiento = idTipoMovimiento;
         this.nombre = nombre;
         this.naturaleza = naturaleza;
     }
