@@ -1,27 +1,23 @@
 package com.Proyecto.Gestor_Contable.Modelo;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@Entity
-@Table (name = "negocios")
+@Document(collection = "negocios")
 public class Negocio {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idNegocio;
+    private String idNegocio;
     private String nombreNegocio;
     private String tipoActividad;
     private double capitalInicial;
     private String rolPropietario;
-    @ManyToOne
-    @JoinColumn(name = "id_usuario")
-    private Usuario usuario;
-
+    private String usuarioId;
     public Negocio() {}
-    public Negocio(Long idNegocio, String nombreNegocio, String tipoActividad, double capitalInicial, String rolPropietario){
+    public Negocio(String idNegocio, String nombreNegocio, String tipoActividad, double capitalInicial, String rolPropietario){
         this.idNegocio = idNegocio;
         this.nombreNegocio = nombreNegocio;
         this.tipoActividad = tipoActividad;
