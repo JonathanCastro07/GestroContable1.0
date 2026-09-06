@@ -9,6 +9,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+//nuevopost
+//f
+
+
+
+
+
+
+
+
+
+
+
+
 
 @RestController
 @RequestMapping("/api/movimiento")

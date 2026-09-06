@@ -23,16 +23,16 @@ public class UsuarioImpl implements UsuarioService {
     }
 
     @Override
-    public Usuario iniciaSesion(String email, String pass) {
-        Optional<Usuario> usuario = usuarioRepository.findByCorreo(email);
+    public Usuario iniciaSesion(String correo, String pass) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo);
 
-        if (usuario.isEmpty()){
+        if (usuario == null){
             throw new RuntimeException("El correo no está registrado");
         }
-        if (!usuario.get().getPassword().equals(pass)){
+        if (!usuario.getPassword().equals(pass)){
             throw new RuntimeException("Contraseña incorrecta");
         }
-        return usuario.orElse(null);
+        return usuario;
     }
 
     @Override
