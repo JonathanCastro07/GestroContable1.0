@@ -1,5 +1,7 @@
 package com.Proyecto.Gestor_Contable.Modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Getter;
@@ -9,6 +11,8 @@ import java.io.Serializable;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Document(collection = "tipos_movimiento")
 public class TipoMovimiento implements Serializable {
 
@@ -19,11 +23,5 @@ public class TipoMovimiento implements Serializable {
 
     private NaturalezaMovimiento naturaleza;  // DEBITO o CREDITO
 
-    public TipoMovimiento() {}
 
-    public TipoMovimiento(String idTipoMovimiento, String nombre, NaturalezaMovimiento naturaleza) {
-        this.idTipoMovimiento = idTipoMovimiento;
-        this.nombre = nombre;
-        this.naturaleza = naturaleza;
-    }
 }
