@@ -1,6 +1,8 @@
 package com.Proyecto.Gestor_Contable.Modelo;
 
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Getter;
@@ -10,6 +12,8 @@ import java.io.Serializable;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Document(collection = "origenes")
 public class Origen implements Serializable {
 
@@ -22,12 +26,4 @@ public class Origen implements Serializable {
 
     private TipoOrigen tipoOrigen;
 
-    public Origen() {}
-
-    public Origen(String idOrigen, String nombre, String descripcion, TipoOrigen tipoOrigen) {
-        this.idOrigen = idOrigen;
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.tipoOrigen = tipoOrigen;
-    }
 }

@@ -1,5 +1,7 @@
 package com.Proyecto.Gestor_Contable.Modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Getter;
@@ -10,6 +12,8 @@ import java.time.LocalDateTime;
 
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Document(collection = "movimiento_financiero")
 public class MovimientoFinanciero implements Serializable {
 
@@ -23,12 +27,6 @@ public class MovimientoFinanciero implements Serializable {
     private String origenId;
     private String periodoId;
 
-    public MovimientoFinanciero() {}
-    public MovimientoFinanciero(String idMovimiento, double monto, LocalDateTime fecha, String descripcion){
-        this.idMovimiento = idMovimiento;
-        this.monto = monto;
-        this.fecha = fecha;
-        this.descripcion = descripcion;
-    }
+
 
 }
