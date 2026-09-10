@@ -1,9 +1,12 @@
 package com.Proyecto.Gestor_Contable.Service.Impl;
 
+import com.Proyecto.Gestor_Contable.Exception.CredencialesInvalidasException;
 import com.Proyecto.Gestor_Contable.Modelo.Usuario;
 import com.Proyecto.Gestor_Contable.Repository.UsuarioRepository;
 import com.Proyecto.Gestor_Contable.Service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +16,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UsuarioImpl implements UsuarioService {
 
-    private final UsuarioRepository usuarioRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public Usuario registrarse(Usuario usuario) {
         if (usuarioRepository.existsByCorreo(usuario.getCorreo())){
@@ -24,14 +31,12 @@ public class UsuarioImpl implements UsuarioService {
 
     @Override
     public Usuario iniciaSesion(String correo, String pass) {
-        Usuario usuario = usuarioRepository.findByCorreo(correo);
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+               .orElseThrow(()-> new RuntimeException("El correo no esta registrado"));
 
-        if (usuario == null){
-            throw new RuntimeException("El correo no está registrado");
-        }
-        if (!usuario.getPassword().equals(pass)){
-            throw new RuntimeException("Contraseña incorrecta");
-        }
+       if (!passwordEncoder.matches(pass, usuario.getPassword())){
+           throw new CredencialesInvalidasException("COntraseña incorrecta");
+       }
         return usuario;
     }
 
