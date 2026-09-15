@@ -1,6 +1,7 @@
 package com.Proyecto.Gestor_Contable.Controller;
 
-import com.Proyecto.Gestor_Contable.Modelo.Negocio;
+import com.Proyecto.Gestor_Contable.DTO.NegocioRequest;
+import com.Proyecto.Gestor_Contable.DTO.NegocioResponse;
 import com.Proyecto.Gestor_Contable.Service.NegocioServicio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,42 +13,39 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/negocio")
 @CrossOrigin(origins = "*")
-public class NegocioController { //Anderson
+public class NegocioController {
+
     @Autowired
     private NegocioServicio negocioServicio;
+
     @PostMapping("/crear")
-    public ResponseEntity<Negocio> crear(@RequestBody Negocio negocio){
-        return ResponseEntity.status(HttpStatus.CREATED).body(negocioServicio.crear(negocio));
+    public ResponseEntity<NegocioResponse> crear(@RequestBody NegocioRequest request){
+        return ResponseEntity.status(HttpStatus.CREATED).body(negocioServicio.crear(request));
     }
 
     @GetMapping("/usuario/{id}")
-    public ResponseEntity<List<Negocio>> listarPorUsuario(@PathVariable("id") Long idUsuario){
+    public ResponseEntity<List<NegocioResponse>> listarPorUsuario(@PathVariable("id") String idUsuario){
         return ResponseEntity.ok(negocioServicio.listarPorUsuario(idUsuario));
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Negocio> actualizar(@PathVariable Long id, @RequestBody Negocio negocio){
-        return ResponseEntity.ok(negocioServicio.actualizar(id, negocio));
+    public ResponseEntity<NegocioResponse> actualizar(@PathVariable String id, @RequestBody NegocioRequest request){
+        return ResponseEntity.ok(negocioServicio.actualizar(id, request));
     }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id){
+    public ResponseEntity<Void> eliminar(@PathVariable String id){
         negocioServicio.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/utilidad")
-    public ResponseEntity<Double> calcularUtilidad(@PathVariable("id") Long idNegocio){
+    public ResponseEntity<Double> calcularUtilidad(@PathVariable("id") String idNegocio){
         return ResponseEntity.ok(negocioServicio.calcularUtilidades(idNegocio));
     }
+
     @GetMapping("/{id}/financiero")
-    public ResponseEntity<Object> verResumen(@PathVariable("id") Long idNegocio){
+    public ResponseEntity<Object> verResumen(@PathVariable("id") String idNegocio){
         return ResponseEntity.ok(negocioServicio.verResumenFinanciero(idNegocio));
     }
 }
-
-
-
-
-
-
-
-// Martina
