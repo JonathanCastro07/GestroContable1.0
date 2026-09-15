@@ -1,7 +1,9 @@
-
 package com.Proyecto.Gestor_Contable.Service.Impl;
 
-
+import com.Proyecto.Gestor_Contable.DTO.PagoPeriodicoRequest;
+import com.Proyecto.Gestor_Contable.DTO.PagoPeriodicoResponse;
+import com.Proyecto.Gestor_Contable.Exception.PagoPeriodicoNoEncontradoException;
+import com.Proyecto.Gestor_Contable.Mapper.PagoPeriodicoMapper;
 import com.Proyecto.Gestor_Contable.Modelo.MovimientoFinanciero;
 import com.Proyecto.Gestor_Contable.Modelo.PagoPeriodico;
 import com.Proyecto.Gestor_Contable.Modelo.Periodo;
@@ -9,84 +11,98 @@ import com.Proyecto.Gestor_Contable.Repository.MovimientoRepository;
 import com.Proyecto.Gestor_Contable.Repository.PagoPeriodicoRepository;
 import com.Proyecto.Gestor_Contable.Repository.PeriodoRepository;
 import com.Proyecto.Gestor_Contable.Service.PagoPeriodicoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PagoPeriodicoServiceImpl implements PagoPeriodicoService {
 
-    @Autowired
-    private PagoPeriodicoRepository pagoRepository;
-
-    @Autowired
-    private MovimientoRepository movimientoRepository;
-
-    @Autowired
-    private PeriodoRepository periodoRepository;
+    private final PagoPeriodicoRepository pagoRepository;
+    private final MovimientoRepository movimientoRepository;
+    private final PeriodoRepository periodoRepository;
+    private final PagoPeriodicoMapper pagoPeriodicoMapper;
 
     @Override
-    public PagoPeriodico crear(PagoPeriodico pagoPeriodico) {
-        return pagoRepository.save(pagoPeriodico);
+    public PagoPeriodicoResponse crear(PagoPeriodicoRequest request) {
+        PagoPeriodico pago = pagoPeriodicoMapper.toEntity(request);
+        PagoPeriodico guardado = pagoRepository.save(pago);
+        return pagoPeriodicoMapper.toResponse(guardado);
     }
 
     @Override
-    public List<PagoPeriodico> listarPorNegocio(Long idNegocio) {
-        return pagoRepository.findByNegocioIdNegocio(idNegocio);
+    public List<PagoPeriodicoResponse> listarPorNegocio(String idNegocio) {
+        return pagoRepository.findByNegocioId(idNegocio)
+                .stream()
+                .map(pagoPeriodicoMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public List<PagoPeriodico> listarActivosPorNegocio(Long idNegocio) {
-        return pagoRepository.findByNegocioIdNegocioAndActivoTrue(idNegocio);
+    public List<PagoPeriodicoResponse> listarActivosPorNegocio(String idNegocio) {
+        return pagoRepository.findByNegocioIdAndActivoTrue(idNegocio)
+                .stream()
+                .map(pagoPeriodicoMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public List<PagoPeriodico> listarProximos(Long idNegocio) {
+    public List<PagoPeriodicoResponse> listarProximos(String idNegocio) {
         LocalDate hoy = LocalDate.now();
         LocalDate en3Dias = hoy.plusDays(3);
-        return pagoRepository.findByNegocioIdNegocioAndActivoTrueAndFechaPagoBetween(
-                idNegocio, hoy, en3Dias);
+        return pagoRepository.findByNegocioIdAndActivoTrueAndFechaPagoBetween(idNegocio, hoy, en3Dias)
+                .stream()
+                .map(pagoPeriodicoMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public Optional<PagoPeriodico> buscarPorId(Long id) {
-        return pagoRepository.findById(id);
+    public PagoPeriodicoResponse buscarPorId(String id) {
+        PagoPeriodico pago = pagoRepository.findById(id)
+                .orElseThrow(() -> new PagoPeriodicoNoEncontradoException("Pago periódico no encontrado con id: " + id));
+        return pagoPeriodicoMapper.toResponse(pago);
     }
 
     @Override
-    public PagoPeriodico actualizar(Long id, PagoPeriodico pagoPeriodico) {
+    public PagoPeriodicoResponse actualizar(String id, PagoPeriodicoRequest request) {
         PagoPeriodico existente = pagoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pago periódico no encontrado"));
-        existente.setNombre(pagoPeriodico.getNombre());
-        existente.setMonto(pagoPeriodico.getMonto());
-        existente.setFechaPago(pagoPeriodico.getFechaPago());
-        existente.setDescripcion(pagoPeriodico.getDescripcion());
-        existente.setActivo(pagoPeriodico.isActivo());
-        return pagoRepository.save(existente);
+                .orElseThrow(() -> new PagoPeriodicoNoEncontradoException("Pago periódico no encontrado con id: " + id));
+
+        existente.setNombre(request.nombre());
+        existente.setMonto(request.monto());
+        existente.setFechaPago(request.fecha());
+        existente.setNegocioId(request.negocioId());
+        existente.setTipoMovimientoId(request.tipoMovimientoId());
+        existente.setOrigenId(request.origenId());
+
+        PagoPeriodico actualizado = pagoRepository.save(existente);
+        return pagoPeriodicoMapper.toResponse(actualizado);
     }
 
     @Override
-    public void eliminar(Long id) {
+    public void eliminar(String id) {
+        if (!pagoRepository.existsById(id)) {
+            throw new PagoPeriodicoNoEncontradoException("Pago periódico no encontrado con id: " + id);
+        }
         pagoRepository.deleteById(id);
     }
 
     @Override
-    public void ejecutarPago(Long id) {
+    public void ejecutarPago(String id) {
         PagoPeriodico pago = pagoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pago periódico no encontrado"));
-
+                .orElseThrow(() -> new PagoPeriodicoNoEncontradoException("Pago periódico no encontrado con id: " + id));
 
         MovimientoFinanciero movimiento = new MovimientoFinanciero();
         movimiento.setMonto(pago.getMonto());
         movimiento.setFecha(LocalDateTime.now());
         movimiento.setDescripcion("Pago periódico: " + pago.getNombre());
-        movimiento.setNegocio(pago.getNegocio());
-        movimiento.setTipoMovimiento(pago.getTipoMovimiento());
-        movimiento.setOrigen(pago.getOrigen());
-
+        movimiento.setNegocioId(pago.getNegocioId());
+        movimiento.setTipoMovimientoId(pago.getTipoMovimientoId());
+        movimiento.setOrigenId(pago.getOrigenId());
 
         String mes = LocalDateTime.now().getMonth().name();
         int anio = LocalDateTime.now().getYear();
@@ -97,7 +113,7 @@ public class PagoPeriodicoServiceImpl implements PagoPeriodicoService {
                     nuevoPeriodo.setAnio(anio);
                     return periodoRepository.save(nuevoPeriodo);
                 });
-        movimiento.setPeriodo(periodo);
+        movimiento.setPeriodoId(periodo.getIdPeriodo());
 
         movimientoRepository.save(movimiento);
 
@@ -106,9 +122,12 @@ public class PagoPeriodicoServiceImpl implements PagoPeriodicoService {
     }
 
     @Override
-    public List<PagoPeriodico> listarPorPeriodo(Long idNegocio, Integer mes, Integer anio) {
-        return pagoRepository.findByNegocioAndPeriodo(idNegocio, mes, anio);
+    public List<PagoPeriodicoResponse> listarPorPeriodo(String idNegocio, Integer mes, Integer anio) {
+        return pagoRepository.findByNegocioId(idNegocio)
+                .stream()
+                .filter(pago -> pago.getFechaPago().getMonthValue() == mes
+                        && pago.getFechaPago().getYear() == anio)
+                .map(pagoPeriodicoMapper::toResponse)
+                .toList();
     }
-
-
 }

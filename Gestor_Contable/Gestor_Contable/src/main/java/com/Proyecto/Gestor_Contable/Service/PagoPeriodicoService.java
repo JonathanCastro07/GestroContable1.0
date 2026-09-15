@@ -1,17 +1,18 @@
 package com.Proyecto.Gestor_Contable.Service;
 
-import com.Proyecto.Gestor_Contable.Modelo.PagoPeriodico;
+import com.Proyecto.Gestor_Contable.DTO.PagoPeriodicoRequest;
+import com.Proyecto.Gestor_Contable.DTO.PagoPeriodicoResponse;
+
 import java.util.List;
-import java.util.Optional;
 
 public interface PagoPeriodicoService {
-    PagoPeriodico crear(PagoPeriodico pagoPeriodico);
-    List<PagoPeriodico> listarPorNegocio(Long idNegocio);
-    List<PagoPeriodico> listarActivosPorNegocio(Long idNegocio);
-    List<PagoPeriodico> listarProximos(Long idNegocio);
-    Optional<PagoPeriodico> buscarPorId(Long id);
-    PagoPeriodico actualizar(Long id, PagoPeriodico pagoPeriodico);
-    void eliminar(Long id);
-    void ejecutarPago(Long id);
-    List<PagoPeriodico> listarPorPeriodo(Long idNegocio, Integer mes, Integer anio);
+    PagoPeriodicoResponse crear(PagoPeriodicoRequest request);
+    List<PagoPeriodicoResponse> listarPorNegocio(String idNegocio);
+    List<PagoPeriodicoResponse> listarActivosPorNegocio(String idNegocio);
+    List<PagoPeriodicoResponse> listarProximos(String idNegocio);
+    PagoPeriodicoResponse buscarPorId(String id);
+    PagoPeriodicoResponse actualizar(String id, PagoPeriodicoRequest request);
+    void eliminar(String id);
+    void ejecutarPago(String id);
+    List<PagoPeriodicoResponse> listarPorPeriodo(String idNegocio, Integer mes, Integer anio);
 }

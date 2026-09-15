@@ -1,14 +1,14 @@
 package com.Proyecto.Gestor_Contable.Service;
 
-import com.Proyecto.Gestor_Contable.Modelo.Periodo;
+import com.Proyecto.Gestor_Contable.DTO.PeriodoRequest;
+import com.Proyecto.Gestor_Contable.DTO.PeriodoResponse;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface PeriodoService {
-    Periodo crear(Periodo periodo);
-    List<Periodo> listarTodo();
-    Optional<Periodo> BuscarPorId(Long id);
-    Periodo actualizar(Long id, Periodo periodo);
-    void eliminar(Long id);
+    PeriodoResponse crear(PeriodoRequest request);
+    List<PeriodoResponse> listarTodo();
+    PeriodoResponse buscarPorId(String id);
+    PeriodoResponse actualizar(String id, PeriodoRequest request);
+    void eliminar(String id);
 }
