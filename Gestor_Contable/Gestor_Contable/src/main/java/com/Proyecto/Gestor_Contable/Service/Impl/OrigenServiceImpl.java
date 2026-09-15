@@ -6,43 +6,56 @@ import com.Proyecto.Gestor_Contable.Service.OrigenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.Proyecto.Gestor_Contable.DTO.OrigenRequest;
+import com.Proyecto.Gestor_Contable.DTO.OrigenResponse;
+import com.Proyecto.Gestor_Contable.Mapper.OrigenMapper;
+import com.Proyecto.Gestor_Contable.Exception.OrigenNoEncontradoException;
 
 import java.util.List;
 import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class OrigenServiceImpl implements OrigenService {
-    @Autowired
-    private OrigenRepository origenRepository;
+    private final OrigenRepository origenRepository;
+    private final OrigenMapper origenMapper;
 
     @Override
-    public Origen crear(Origen origen) {
-       return  origenRepository.save(origen);
+    public OrigenResponse crear(OrigenRequest request) {
+        Origen origen = origenMapper.toEntity(request);
+        Origen guardado = origenRepository.save(origen);
+        return origenMapper.toResponse(guardado);
     }
 
     @Override
-    public List<Origen> ListarTodo() {
-        return origenRepository.findAll();
+    public List<OrigenResponse> listarTodo() {
+        return origenRepository.findAll()
+                .stream()
+                .map(origenMapper::toResponse)
+                .toList();
+    }
+    @Override
+    public OrigenResponse buscarPorId(String id) {
+        Origen origen = origenRepository.findById(id)
+                .orElseThrow(() -> new OrigenNoEncontradoException("Origen no encontrado con id: " + id));
+        return origenMapper.toResponse(origen);
+    }
+    @Override
+    public OrigenResponse actualizar(String id, OrigenRequest request) {
+        Origen existente = origenRepository.findById(id)
+                .orElseThrow(() -> new OrigenNoEncontradoException("Origen no encontrado con id: " + id));
+
+        existente.setDescripcion(request.descripcion());
+        existente.setTipoOrigen(request.tipoOrigen());
+
+        Origen actualizado = origenRepository.save(existente);
+        return origenMapper.toResponse(actualizado);
     }
 
     @Override
-    public Optional<Origen> busrcarPorId(Long id) {
-        return origenRepository.findById(id);
-    }
-
-    @Override
-    public Origen actualizar(Long id, Origen origen) {
-        Origen exitente = origenRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Origen no encontado"));
-        exitente.setNombre(origen.getNombre());
-        exitente.setDescripcion(origen.getDescripcion());
-        exitente.setTipoOrigen(origen.getTipoOrigen());
-        return origenRepository.save(exitente);
-    }
-
-    @Override
-    public void eliminar(Long id) {
+    public void eliminar(String id) {
+        if (!origenRepository.existsById(id)) {
+            throw new OrigenNoEncontradoException("Origen no encontrado con id: " + id);
+        }
         origenRepository.deleteById(id);
-
     }
 }

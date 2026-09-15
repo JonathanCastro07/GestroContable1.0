@@ -1,6 +1,7 @@
 package com.Proyecto.Gestor_Contable.Controller;
 
-import com.Proyecto.Gestor_Contable.Modelo.Origen;
+import com.Proyecto.Gestor_Contable.DTO.OrigenRequest;
+import com.Proyecto.Gestor_Contable.DTO.OrigenResponse;
 import com.Proyecto.Gestor_Contable.Service.OrigenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,24 +20,23 @@ public class OrigenController {
     private OrigenService origenService;
 
     @PostMapping
-    public ResponseEntity<Origen> Crear(@RequestBody Origen origen){
-        return  ResponseEntity.status(HttpStatus.CREATED).body(origenService.crear(origen));
+    public ResponseEntity<OrigenResponse> crear(@RequestBody OrigenRequest request){
+        return ResponseEntity.status(HttpStatus.CREATED).body(origenService.crear(request));
     }
     @GetMapping
-    public ResponseEntity<List<Origen>> listrar(){
-        return ResponseEntity.ok(origenService.ListarTodo());
+    public ResponseEntity<List<OrigenResponse>> listar(){
+        return ResponseEntity.ok(origenService.listarTodo());
     }
     @GetMapping("/{id}")
-    public  ResponseEntity<Origen> buscarPorId(@PathVariable Long id){
-        return origenService.busrcarPorId(id)
-                .map(ResponseEntity::ok).orElse(ResponseEntity.noContent().build());
+    public ResponseEntity<OrigenResponse> buscarPorId(@PathVariable String id){
+        return ResponseEntity.ok(origenService.buscarPorId(id));
     }
     @PutMapping("/{id}")
-    public ResponseEntity<Origen> actualizar(@PathVariable Long id, @RequestBody Origen origen){
-        return ResponseEntity.ok(origenService.actualizar(id, origen));
+    public ResponseEntity<OrigenResponse> actualizar(@PathVariable String id, @RequestBody OrigenRequest request){
+        return ResponseEntity.ok(origenService.actualizar(id, request));
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id){
+    public ResponseEntity<Void> eliminar(@PathVariable String id){
         origenService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

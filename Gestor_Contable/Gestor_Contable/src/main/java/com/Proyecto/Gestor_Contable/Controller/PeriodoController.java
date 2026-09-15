@@ -1,6 +1,7 @@
 package com.Proyecto.Gestor_Contable.Controller;
 
-import com.Proyecto.Gestor_Contable.Modelo.Periodo;
+import com.Proyecto.Gestor_Contable.DTO.PeriodoRequest;
+import com.Proyecto.Gestor_Contable.DTO.PeriodoResponse;
 import com.Proyecto.Gestor_Contable.Service.PeriodoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,25 +18,24 @@ public class PeriodoController {
     private PeriodoService periodoService;
 
     @PostMapping
-    public ResponseEntity<Periodo> crear(@RequestBody Periodo periodo){
+    public ResponseEntity<PeriodoResponse> crear(@RequestBody PeriodoRequest request){
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(periodoService.crear(periodo));
+                .body(periodoService.crear(request));
     }
     @GetMapping
-    public ResponseEntity<List<Periodo>> listartodo(){
+    public ResponseEntity<List<PeriodoResponse>> listarTodo(){
         return ResponseEntity.ok(periodoService.listarTodo());
     }
     @GetMapping("/{id}")
-    public ResponseEntity<Periodo>buscarPorid(@PathVariable Long id){
-        return periodoService.BuscarPorId(id).map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
+    public ResponseEntity<PeriodoResponse> buscarPorId(@PathVariable String id){
+        return ResponseEntity.ok(periodoService.buscarPorId(id));
     }
     @PutMapping("/{id}")
-    public ResponseEntity<Periodo> actualizar(@PathVariable Long id, @RequestBody Periodo periodo){
-        return ResponseEntity.ok(periodoService.actualizar(id, periodo));
+    public ResponseEntity<PeriodoResponse> actualizar(@PathVariable String id, @RequestBody PeriodoRequest request){
+        return ResponseEntity.ok(periodoService.actualizar(id, request));
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id){
+    public ResponseEntity<Void> eliminar(@PathVariable String id){
         periodoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

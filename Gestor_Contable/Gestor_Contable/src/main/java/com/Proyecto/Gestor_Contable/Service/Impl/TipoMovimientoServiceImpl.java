@@ -1,5 +1,9 @@
 package com.Proyecto.Gestor_Contable.Service.Impl;
 
+import com.Proyecto.Gestor_Contable.DTO.TipoMovimientoRequest;
+import com.Proyecto.Gestor_Contable.DTO.TipoMovimientoResponse;
+import com.Proyecto.Gestor_Contable.Exception.TipoMovimientoNoEncontradoException;
+import com.Proyecto.Gestor_Contable.Mapper.TipoMovimientoMapper;
 import com.Proyecto.Gestor_Contable.Modelo.TipoMovimiento;
 import com.Proyecto.Gestor_Contable.Repository.TipoMovimientoRepository;
 import com.Proyecto.Gestor_Contable.Service.TipoMovimientoService;
@@ -7,39 +11,53 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class TipoMovimientoServiceImpl implements TipoMovimientoService {
 
     private final TipoMovimientoRepository tipoMovimientoRepository;
+    private final TipoMovimientoMapper tipoMovimientoMapper;
 
     @Override
-    public TipoMovimiento crearTipo(TipoMovimiento tipoMovimiento) {
-        return tipoMovimientoRepository.save(tipoMovimiento);
+    public TipoMovimientoResponse crearTipo(TipoMovimientoRequest request) {
+        TipoMovimiento tipoMovimiento = tipoMovimientoMapper.toEntity(request);
+        TipoMovimiento guardado = tipoMovimientoRepository.save(tipoMovimiento);
+        return tipoMovimientoMapper.toResponse(guardado);
     }
 
     @Override
-    public List<TipoMovimiento> listarTodo() {
-        return tipoMovimientoRepository.findAll();
+    public List<TipoMovimientoResponse> listarTodo() {
+        return tipoMovimientoRepository.findAll()
+                .stream()
+                .map(tipoMovimientoMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public Optional<TipoMovimiento> BusrcarID(Long id) {
-        return tipoMovimientoRepository.findById(id);
+    public TipoMovimientoResponse buscarPorId(String id) {
+        TipoMovimiento tipoMovimiento = tipoMovimientoRepository.findById(id)
+                .orElseThrow(() -> new TipoMovimientoNoEncontradoException("Tipo de movimiento no encontrado con id: " + id));
+        return tipoMovimientoMapper.toResponse(tipoMovimiento);
     }
 
     @Override
-    public TipoMovimiento actualizar(Long id, TipoMovimiento tipoMovimiento) {
+    public TipoMovimientoResponse actualizar(String id, TipoMovimientoRequest request) {
         TipoMovimiento existente = tipoMovimientoRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Tipo de movimiento no encontrado"));
-        existente.setNombre(tipoMovimiento.getNombre());
-        existente.setNaturaleza(tipoMovimiento.getNaturaleza());
-        return  tipoMovimientoRepository.save(existente);
+                .orElseThrow(() -> new TipoMovimientoNoEncontradoException("Tipo de movimiento no encontrado con id: " + id));
+
+        existente.setNombre(request.nombre());
+        existente.setNaturaleza(request.naturaleza());
+
+        TipoMovimiento actualizado = tipoMovimientoRepository.save(existente);
+        return tipoMovimientoMapper.toResponse(actualizado);
     }
 
     @Override
-    public void eliminar(Long id) {
+    public void eliminar(String id) {
+        if (!tipoMovimientoRepository.existsById(id)) {
+            throw new TipoMovimientoNoEncontradoException("Tipo de movimiento no encontrado con id: " + id);
+        }
         tipoMovimientoRepository.deleteById(id);
     }
 }
