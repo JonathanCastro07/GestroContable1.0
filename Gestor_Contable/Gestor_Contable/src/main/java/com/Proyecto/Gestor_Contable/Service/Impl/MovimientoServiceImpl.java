@@ -4,6 +4,7 @@ import com.Proyecto.Gestor_Contable.Modelo.MovimientoFinanciero;
 import com.Proyecto.Gestor_Contable.Modelo.Periodo;
 import com.Proyecto.Gestor_Contable.Repository.MovimientoRepository;
 import com.Proyecto.Gestor_Contable.Repository.PeriodoRepository;
+import com.Proyecto.Gestor_Contable.Service.MovimientoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MovimientoService implements com.Proyecto.Gestor_Contable.Service.MovimientoService {
+public class MovimientoServiceImpl implements MovimientoService {
     private final MovimientoRepository movimientoRepository;
     private  final PeriodoRepository periodoRepository;
 
