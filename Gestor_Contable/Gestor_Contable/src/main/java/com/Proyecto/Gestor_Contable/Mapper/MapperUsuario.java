@@ -6,7 +6,7 @@ import com.Proyecto.Gestor_Contable.Modelo.Usuario;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UsuarioMapper {
+public class MapperUsuario {
 
     public Usuario toEntity(RegistroRequest request) {
         Usuario usuario = new Usuario();

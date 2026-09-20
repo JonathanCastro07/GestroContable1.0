@@ -7,7 +7,7 @@ import com.Proyecto.Gestor_Contable.DTO.UsuarioResponse;
 import com.Proyecto.Gestor_Contable.Exception.CredencialesInvalidasException;
 import com.Proyecto.Gestor_Contable.Exception.EmailYaRegistradoException;
 import com.Proyecto.Gestor_Contable.Exception.UsuarioNoEncontradoException;
-import com.Proyecto.Gestor_Contable.Mapper.UsuarioMapper;
+import com.Proyecto.Gestor_Contable.Mapper.MapperUsuario;
 import com.Proyecto.Gestor_Contable.Modelo.Usuario;
 import com.Proyecto.Gestor_Contable.Repository.UsuarioRepository;
 import com.Proyecto.Gestor_Contable.Security.CustomUserDetailsService;
@@ -26,7 +26,7 @@ public class UsuarioImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UsuarioMapper usuarioMapper;
+    private final MapperUsuario mapperUsuario;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
 
@@ -36,11 +36,11 @@ public class UsuarioImpl implements UsuarioService {
             throw new EmailYaRegistradoException("El correo ya está registrado");
         }
 
-        Usuario usuario = usuarioMapper.toEntity(request);
+        Usuario usuario = mapperUsuario.toEntity(request);
         usuario.setPassword(passwordEncoder.encode(request.password()));
 
         Usuario guardado = usuarioRepository.save(usuario);
-        return usuarioMapper.toResponse(guardado);
+        return mapperUsuario.toResponse(guardado);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class UsuarioImpl implements UsuarioService {
     public List<UsuarioResponse> listarTodo() {
         return usuarioRepository.findAll()
                 .stream()
-                .map(usuarioMapper::toResponse)
+                .map(mapperUsuario::toResponse)
                 .toList();
     }
 
@@ -70,7 +70,7 @@ public class UsuarioImpl implements UsuarioService {
     public UsuarioResponse buscarPorId(String id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id));
-        return usuarioMapper.toResponse(usuario);
+        return mapperUsuario.toResponse(usuario);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class UsuarioImpl implements UsuarioService {
         }
 
         Usuario actualizado = usuarioRepository.save(existente);
-        return usuarioMapper.toResponse(actualizado);
+        return mapperUsuario.toResponse(actualizado);
     }
 
     @Override
