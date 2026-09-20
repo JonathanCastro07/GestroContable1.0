@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 @RestController
@@ -28,11 +28,12 @@ public class NegocioController {
         return ResponseEntity.ok(negocioServicio.listarPorUsuario(idUsuario));
     }
 
+    @PreAuthorize("@negocioSecurity.esDueno(#id, authentication.name)")
     @PutMapping("/{id}")
     public ResponseEntity<NegocioResponse> actualizar(@PathVariable String id, @RequestBody NegocioRequest request){
         return ResponseEntity.ok(negocioServicio.actualizar(id, request));
     }
-
+    @PreAuthorize("@negocioSecurity.esDueno(#id, authentication.name)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable String id){
         negocioServicio.eliminar(id);

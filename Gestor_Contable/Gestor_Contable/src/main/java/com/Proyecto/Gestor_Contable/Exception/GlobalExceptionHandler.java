@@ -37,6 +37,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(UsuarioNoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> handleUsuarioNoEncontrado(UsuarioNoEncontradoException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), 404, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(PeriodoNoEncontradoException.class)
     public ResponseEntity<ErrorResponse> handlePeriodoNoEncontrando(PagoPeriodicoNoEncontradoException ex) {
         ErrorResponse error = new ErrorResponse(ex.getMessage(), 404, LocalDateTime.now());

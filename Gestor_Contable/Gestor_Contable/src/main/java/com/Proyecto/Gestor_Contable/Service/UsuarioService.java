@@ -1,15 +1,17 @@
 package com.Proyecto.Gestor_Contable.Service;
 
-import com.Proyecto.Gestor_Contable.Modelo.Usuario;
+import com.Proyecto.Gestor_Contable.DTO.LoginRequest;
+import com.Proyecto.Gestor_Contable.DTO.LoginResponse;
+import com.Proyecto.Gestor_Contable.DTO.RegistroRequest;
+import com.Proyecto.Gestor_Contable.DTO.UsuarioResponse;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface UsuarioService  {
-    Usuario registrarse(Usuario usuario);
-    Usuario iniciaSesion(String correo, String pass);
-    List<Usuario> listarTodo();
-    Optional<Usuario> buscarPorid(Long id);
-    Usuario actualizar(Long id, Usuario usuario);
-    void eliminar(Long id);
+public interface UsuarioService {
+    UsuarioResponse registrarse(RegistroRequest request);
+    LoginResponse iniciaSesion(LoginRequest request);
+    List<UsuarioResponse> listarTodo();
+    UsuarioResponse buscarPorId(String id);
+    UsuarioResponse actualizar(String id, RegistroRequest request);
+    void eliminar(String id);
 }
