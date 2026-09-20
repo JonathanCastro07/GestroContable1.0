@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface AnalisisFinancieroIARepository extends MongoRepository<AnalisisFinancieroIA, String> {
-    List<AnalisisFinancieroIA> findbyNegocioId(String negocioid);
+    List<AnalisisFinancieroIA> findByNegocioId(String negocioId);
 }

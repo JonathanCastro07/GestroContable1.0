@@ -7,7 +7,8 @@ public record AnalisisFinancieroIAResponse(
         String negocioid,
         String periodo,
         String textoGenerado,
-        LocalDateTime fechaGeneracion,
-        String tipoAlerta
+        String tipoAlerta,
+        LocalDateTime fechaGeneracion
+
 ) {}
 
