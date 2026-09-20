@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import com.Proyecto.Gestor_Contable.DTO.MovimientoResumenResponse;
 import com.Proyecto.Gestor_Contable.Modelo.TipoMovimiento;
 import com.Proyecto.Gestor_Contable.Repository.TipoMovimientoRepository;
-import java.time.LocalDateTime;
+
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -92,6 +92,7 @@ public class MovimientoServiceImpl implements MovimientoService {
                 .map(movimientoMapper::toResponse)
                 .toList();
     }
+
     @Override
     public MovimientoResumenResponse obtenerResumen(String negocioId, String periodo) {
         LocalDate hasta = LocalDate.now();
