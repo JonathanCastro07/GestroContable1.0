@@ -2,7 +2,7 @@ package com.Proyecto.Gestor_Contable.controller;
 
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroRequest;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroResponse;
-import com.Proyecto.Gestor_Contable.Service.MovimientoService;
+import com.Proyecto.Gestor_Contable.service.MovimientoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

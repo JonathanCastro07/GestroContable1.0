@@ -6,7 +6,7 @@ import com.Proyecto.Gestor_Contable.dtos.RegistroRequest;
 import com.Proyecto.Gestor_Contable.dtos.UsuarioResponse;
 import com.Proyecto.Gestor_Contable.exception.CredencialesInvalidasException;
 import com.Proyecto.Gestor_Contable.exception.EmailYaRegistradoException;
-import com.Proyecto.Gestor_Contable.Exception.UsuarioNoEncontradoException;
+import com.Proyecto.Gestor_Contable.exception.UsuarioNoEncontradoException;
 import com.Proyecto.Gestor_Contable.mapper.MapperUsuario;
 import com.Proyecto.Gestor_Contable.modelo.Usuario;
 import com.Proyecto.Gestor_Contable.repository.UsuarioRepository;

@@ -1,4 +1,4 @@
-package com.Proyecto.Gestor_Contable.Exception;
+package com.Proyecto.Gestor_Contable.exception;
 
 public class UsuarioNoEncontradoException extends RuntimeException {
     public UsuarioNoEncontradoException(String message) {

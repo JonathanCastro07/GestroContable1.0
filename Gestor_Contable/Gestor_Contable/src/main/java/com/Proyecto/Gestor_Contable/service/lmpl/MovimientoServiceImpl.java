@@ -1,14 +1,14 @@
-package com.Proyecto.Gestor_Contable.Service.Impl;
+package com.Proyecto.Gestor_Contable.service.lmpl;
 
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroRequest;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroResponse;
 import com.Proyecto.Gestor_Contable.exception.MovimientoFinancieroNoEncontradoException;
-import com.Proyecto.Gestor_Contable.Mapper.MovimientoFinancieroMapper;
+import com.Proyecto.Gestor_Contable.mapper.MovimientoFinancieroMapper;
 import com.Proyecto.Gestor_Contable.modelo.MovimientoFinanciero;
 import com.Proyecto.Gestor_Contable.modelo.Periodo;
 import com.Proyecto.Gestor_Contable.repository.MovimientoRepository;
 import com.Proyecto.Gestor_Contable.repository.PeriodoRepository;
-import com.Proyecto.Gestor_Contable.Service.MovimientoService;
+import com.Proyecto.Gestor_Contable.service.MovimientoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoResumenResponse;

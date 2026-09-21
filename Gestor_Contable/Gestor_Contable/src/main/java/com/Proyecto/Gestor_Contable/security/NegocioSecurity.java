@@ -1,7 +1,7 @@
-package com.Proyecto.Gestor_Contable.Security;
+package com.Proyecto.Gestor_Contable.security;
 
-import com.Proyecto.Gestor_Contable.Repository.NegocioRepository;
-import com.Proyecto.Gestor_Contable.Repository.UsuarioRepository;
+import com.Proyecto.Gestor_Contable.repository.NegocioRepository;
+import com.Proyecto.Gestor_Contable.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

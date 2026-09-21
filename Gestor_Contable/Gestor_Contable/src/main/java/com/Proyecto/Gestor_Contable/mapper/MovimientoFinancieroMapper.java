@@ -1,8 +1,8 @@
-package com.Proyecto.Gestor_Contable.Mapper;
+package com.Proyecto.Gestor_Contable.mapper;
 
-import com.Proyecto.Gestor_Contable.DTO.MovimientoFinancieroRequest;
-import com.Proyecto.Gestor_Contable.DTO.MovimientoFinancieroResponse;
-import com.Proyecto.Gestor_Contable.Modelo.MovimientoFinanciero;
+import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroRequest;
+import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroResponse;
+import com.Proyecto.Gestor_Contable.modelo.MovimientoFinanciero;
 import org.springframework.stereotype.Component;
 
 @Component
