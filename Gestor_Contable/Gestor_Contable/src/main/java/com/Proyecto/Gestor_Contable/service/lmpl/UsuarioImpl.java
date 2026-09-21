@@ -1,71 +1,99 @@
 package com.Proyecto.Gestor_Contable.service.lmpl;
 
+import com.Proyecto.Gestor_Contable.dtos.LoginRequest;
+import com.Proyecto.Gestor_Contable.dtos.LoginResponse;
+import com.Proyecto.Gestor_Contable.dtos.RegistroRequest;
+import com.Proyecto.Gestor_Contable.dtos.UsuarioResponse;
 import com.Proyecto.Gestor_Contable.exception.CredencialesInvalidasException;
+import com.Proyecto.Gestor_Contable.exception.EmailYaRegistradoException;
+import com.Proyecto.Gestor_Contable.Exception.UsuarioNoEncontradoException;
+import com.Proyecto.Gestor_Contable.mapper.MapperUsuario;
 import com.Proyecto.Gestor_Contable.modelo.Usuario;
 import com.Proyecto.Gestor_Contable.repository.UsuarioRepository;
+import com.Proyecto.Gestor_Contable.security.CustomUserDetailsService;
+import com.Proyecto.Gestor_Contable.security.JwtUtil;
 import com.Proyecto.Gestor_Contable.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UsuarioImpl implements UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final MapperUsuario mapperUsuario;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final JwtUtil jwtUtil;
 
     @Override
-    public Usuario registrarse(Usuario usuario) {
-        if (usuarioRepository.existsByCorreo(usuario.getCorreo())){
-            throw new RuntimeException("El correo ya está registrado");
+    public UsuarioResponse registrarse(RegistroRequest request) {
+        if (usuarioRepository.existsByCorreo(request.Correo())) {
+            throw new EmailYaRegistradoException("El correo ya está registrado");
         }
-        return usuarioRepository.save(usuario);
+
+        Usuario usuario = mapperUsuario.toEntity(request);
+        usuario.setPassword(passwordEncoder.encode(request.password()));
+
+        Usuario guardado = usuarioRepository.save(usuario);
+        return mapperUsuario.toResponse(guardado);
     }
 
     @Override
-    public Usuario iniciaSesion(String correo, String pass) {
-        Usuario usuario = usuarioRepository.findByCorreo(correo)
-               .orElseThrow(()-> new RuntimeException("El correo no esta registrado"));
+    public LoginResponse iniciaSesion(LoginRequest request) {
+        Usuario usuario = usuarioRepository.findByCorreo(request.email())
+                .orElseThrow(() -> new CredencialesInvalidasException("Correo o contraseña incorrectos"));
 
-       if (!passwordEncoder.matches(pass, usuario.getPassword())){
-           throw new CredencialesInvalidasException("COntraseña incorrecta");
-       }
-        return usuario;
+        if (!passwordEncoder.matches(request.password(), usuario.getPassword())) {
+            throw new CredencialesInvalidasException("Correo o contraseña incorrectos");
+        }
+
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(usuario.getCorreo());
+        String token = jwtUtil.generarToken(userDetails);
+
+        return new LoginResponse(usuario.getNombre(), usuario.getCorreo(), token);
     }
 
     @Override
-    public List<Usuario> listarTodo() {
-        return usuarioRepository.findAll();
+    public List<UsuarioResponse> listarTodo() {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(mapperUsuario::toResponse)
+                .toList();
     }
 
     @Override
-    public Optional<Usuario> buscarPorid(Long id) {
-        return usuarioRepository.findById(id);
+    public UsuarioResponse buscarPorId(String id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id));
+        return mapperUsuario.toResponse(usuario);
     }
 
     @Override
-    public Usuario actualizar(Long id, Usuario usuario) {
-        Usuario usuarioExistente = usuarioRepository.findById(id).
-                orElseThrow(()-> new RuntimeException("Usuario no encontrado"));
+    public UsuarioResponse actualizar(String id, RegistroRequest request) {
+        Usuario existente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id));
 
-        usuarioExistente.setNombre(usuario.getNombre());
-        usuarioExistente.setCorreo(usuario.getCorreo());
-        usuarioExistente.setTelefono(usuario.getTelefono());
-        usuarioExistente.setPassword(usuario.getPassword());
+        existente.setNombre(request.nombre());
+        existente.setCorreo(request.Correo());
+        existente.setPreguntaSeguridad(request.preguntaSeguridad());
+        if (request.password() != null && !request.password().isBlank()) {
+            existente.setPassword(passwordEncoder.encode(request.password()));
+        }
 
-        return usuarioRepository.save(usuarioExistente);
+        Usuario actualizado = usuarioRepository.save(existente);
+        return mapperUsuario.toResponse(actualizado);
     }
 
     @Override
-    public void eliminar(Long id) {
+    public void eliminar(String id) {
+        if (!usuarioRepository.existsById(id)) {
+            throw new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id);
+        }
         usuarioRepository.deleteById(id);
     }
 }
-

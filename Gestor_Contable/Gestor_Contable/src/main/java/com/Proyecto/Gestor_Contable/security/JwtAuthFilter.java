@@ -1,6 +1,6 @@
 package com.Proyecto.Gestor_Contable.security;
 
-import com.Proyecto.Gestor_Contable.service.lmpl.UsuarioImpl;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,7 +21,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil  jwtUtil;
     @Autowired
-    private UsuarioImpl  usuario;
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -39,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String email =jwtUtil.extraerEmail(token);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            UserDetails userDetails = usuario.iniciaSesion(email);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
             if (jwtUtil.validaToken(token, userDetails)){
                 UsernamePasswordAuthenticationToken authToken =
