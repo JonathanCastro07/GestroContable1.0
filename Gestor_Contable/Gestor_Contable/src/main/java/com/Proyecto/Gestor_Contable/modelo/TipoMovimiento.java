@@ -19,9 +19,8 @@ public class TipoMovimiento implements Serializable {
     @Id
     private String idTipoMovimiento;
 
-    private String nombre;  // INGRESO, EGRESO, GASTO
-
-    private NaturalezaMovimiento naturaleza;  // DEBITO o CREDITO
+    private String nombre;
+    private NaturalezaMovimiento naturaleza;
 
 
 }
