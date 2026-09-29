@@ -21,7 +21,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil  jwtUtil;
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService;    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,6 +39,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
+        if (tokenBlacklistService.estaEnBlacklist(token)){
+            filterChain.doFilter(request,response);
+            return;
+        }
         String email =jwtUtil.extraerEmail(token);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null){

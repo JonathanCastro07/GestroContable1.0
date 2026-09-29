@@ -19,6 +19,10 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private com.Proyecto.Gestor_Contable.security.JwtUtil jwtUtil;
+    @Autowired
+    private com.Proyecto.Gestor_Contable.security.TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/registro")
     public ResponseEntity<UsuarioResponse> registrarse(@RequestBody RegistroRequest request){
@@ -29,6 +33,14 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> iniciaSesion(@RequestBody LoginRequest request){
         return ResponseEntity.ok(usuarioService.iniciaSesion(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> cerrarSesion(@RequestHeader("Authorization") String authHeader){
+        String token = authHeader.substring(7);
+        long segundosRestantes = jwtUtil.obtenerSegundosRestantes(token);
+        tokenBlacklistService.agregarABlacklist(token, segundosRestantes);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
