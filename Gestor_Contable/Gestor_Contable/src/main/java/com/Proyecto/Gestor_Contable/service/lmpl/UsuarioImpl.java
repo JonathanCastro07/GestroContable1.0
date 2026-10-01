@@ -32,7 +32,7 @@ public class UsuarioImpl implements UsuarioService {
 
     @Override
     public UsuarioResponse registrarse(RegistroRequest request) {
-        if (usuarioRepository.existsByCorreo(request.Correo())) {
+        if (usuarioRepository.existsByCorreo(request.correo())) {
             throw new EmailYaRegistradoException("El correo ya está registrado");
         }
 
@@ -45,7 +45,7 @@ public class UsuarioImpl implements UsuarioService {
 
     @Override
     public LoginResponse iniciaSesion(LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreo(request.email())
+        Usuario usuario = usuarioRepository.findByCorreo(request.correo())
                 .orElseThrow(() -> new CredencialesInvalidasException("Correo o contraseña incorrectos"));
 
         if (!passwordEncoder.matches(request.password(), usuario.getPassword())) {
@@ -79,7 +79,7 @@ public class UsuarioImpl implements UsuarioService {
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id));
 
         existente.setNombre(request.nombre());
-        existente.setCorreo(request.Correo());
+        existente.setCorreo(request.correo());
         existente.setPreguntaSeguridad(request.preguntaSeguridad());
         if (request.password() != null && !request.password().isBlank()) {
             existente.setPassword(passwordEncoder.encode(request.password()));
