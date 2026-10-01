@@ -59,4 +59,17 @@ public class JwtUtil {
         byte[] keyBytes = Decoders.BASE64.decode(secretkey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
+    public long obtenerSegundosRestantes(String token){
+        Date fechaExpiracion = Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
+
+        long diferenciaMs = fechaExpiracion.getTime() - System.currentTimeMillis();
+        return diferenciaMs / 1000;
+    }
 }
+
