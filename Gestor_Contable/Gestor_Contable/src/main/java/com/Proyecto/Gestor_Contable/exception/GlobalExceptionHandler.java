@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PeriodoNoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> handlePeriodoNoEncontrando(PagoPeriodicoNoEncontradoException ex) {
+    public ResponseEntity<ErrorResponse> handlePeriodoNoEncontrando(PeriodoNoEncontradoException ex) {
         ErrorResponse error = new ErrorResponse(ex.getMessage(), 404, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
