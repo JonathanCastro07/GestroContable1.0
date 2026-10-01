@@ -11,7 +11,7 @@ public class MapperUsuario {
     public Usuario toEntity(RegistroRequest request) {
         Usuario usuario = new Usuario();
         usuario.setNombre(request.nombre());
-        usuario.setCorreo(request.Correo());
+        usuario.setCorreo(request.correo());
         usuario.setPassword(request.password());
         usuario.setPreguntaSeguridad(request.preguntaSeguridad());
         return usuario;
