@@ -4,5 +4,4 @@ public record LoginResponse(
         String nombre,
         String correo,
         String token
-
 ) {}

@@ -3,15 +3,19 @@ package com.Proyecto.Gestor_Contable.service.lmpl;
 import com.Proyecto.Gestor_Contable.dtos.NegocioRequest;
 import com.Proyecto.Gestor_Contable.dtos.NegocioResponse;
 import com.Proyecto.Gestor_Contable.exception.NegocioNoEncontradoException;
+import com.Proyecto.Gestor_Contable.exception.UsuarioNoEncontradoException;
 import com.Proyecto.Gestor_Contable.mapper.NegocioMapper;
 import com.Proyecto.Gestor_Contable.modelo.MovimientoFinanciero;
 import com.Proyecto.Gestor_Contable.modelo.Negocio;
 import com.Proyecto.Gestor_Contable.modelo.TipoMovimiento;
+import com.Proyecto.Gestor_Contable.modelo.Usuario;
 import com.Proyecto.Gestor_Contable.repository.MovimientoRepository;
 import com.Proyecto.Gestor_Contable.repository.NegocioRepository;
 import com.Proyecto.Gestor_Contable.repository.TipoMovimientoRepository;
+import com.Proyecto.Gestor_Contable.repository.UsuarioRepository;
 import com.Proyecto.Gestor_Contable.service.NegocioServicio;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -26,10 +30,17 @@ public class NegocioImpl implements NegocioServicio {
     private final MovimientoRepository movimientoRepository;
     private final TipoMovimientoRepository tipoMovimientoRepository;
     private final NegocioMapper negocioMapper;
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     public NegocioResponse crear(NegocioRequest request) {
+        String correo = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con correo: " + correo));
+
         Negocio negocio = negocioMapper.toEntity(request);
+        negocio.setUsuarioId(usuario.getIdUsuario());
+
         Negocio guardado = negocioRepository.save(negocio);
         return negocioMapper.toResponse(guardado);
     }
