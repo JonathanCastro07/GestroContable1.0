@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Component
 @RequiredArgsConstructor
 public class ReplicaMongoSqlScheduler {
@@ -30,8 +33,8 @@ public class ReplicaMongoSqlScheduler {
     private final MovimientoRepository movimientoRepository;
     private final MovimientoFinancieroSqlRepository movimientoSqlRepository;
 
-    private final UsuarioRepository usuarioRepository;
     private final UsuarioSqlRepository usuarioSqlRepository;
+
 
     @Scheduled(fixedRate = 360000)
     public void replicarTodo() {
@@ -99,7 +102,7 @@ public class ReplicaMongoSqlScheduler {
             sql.setTipoActividad(n.getTipoActividad());
             sql.setCapitalInicial(n.getCapitalInicial());
             sql.setRolPropietario(n.getRolPropietario());
-            sql.setUsuarioId(n.getUsuarioId());
+            sql.setUsuarioId(n.getUsuario() != null ? n.getUsuario().getCorreo() : null);
             negocioSqlRepository.save(sql);
         });
     }
@@ -120,9 +123,14 @@ public class ReplicaMongoSqlScheduler {
     }
 
     private void replicarUsuario() {
-        usuarioRepository.findAll().forEach(u -> {
+        Set<String> yaReplicados = new HashSet<>();
+        negocioRepository.findAll().forEach(n -> {
+            Usuario u = n.getUsuario();
+            if (u == null || u.getCorreo() == null || !yaReplicados.add(u.getCorreo())) {
+                return;
+            }
             UsuarioSql sql = new UsuarioSql();
-            sql.setIdUsuario(u.getIdUsuario());
+            sql.setIdUsuario(u.getCorreo());
             sql.setNombre(u.getNombre());
             sql.setCorreo(u.getCorreo());
             sql.setTelefono(u.getTelefono());

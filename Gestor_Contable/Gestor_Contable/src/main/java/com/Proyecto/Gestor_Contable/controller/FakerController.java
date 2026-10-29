@@ -21,8 +21,6 @@ import java.util.*;
 public class FakerController {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private UsuarioService usuarioService;
@@ -38,12 +36,12 @@ public class FakerController {
     private PeriodoRepository periodoRepository;
 
     private final Random random = new Random();
-
     @PostMapping("/api/test/generar-usuarios")
     public ResponseEntity<String> generarUsuarios(@RequestParam(defaultValue = "1000") int cantidad){
         Faker faker = new Faker();
         String passwordCifrada = passwordEncoder.encode("Prueba123");
-        List<Usuario> usuarios = new ArrayList<>();
+        String[] tipos = {"COMERCIO", "SERVICIOS", "INDUSTRIA", "AGRICULTURA", "TECNOLOGIA"};
+        List<Negocio> negocios = new ArrayList<>();
 
         for (int i = 0; i < cantidad; i++){
             Usuario usuario = new Usuario();
@@ -53,40 +51,43 @@ public class FakerController {
             usuario.setTelefono(faker.phoneNumber().phoneNumber());
             usuario.setPreguntaSeguridad("¿Cuál es tu color favorito?");
             usuario.setRespuestaSeguridad("Azul");
-            usuarios.add(usuario);
+
+            Negocio negocio = new Negocio();
+            negocio.setNombreNegocio(faker.company().name());
+            negocio.setTipoActividad(tipos[random.nextInt(tipos.length)]);
+            negocio.setCapitalInicial(100 + random.nextDouble() * 50000);
+            negocio.setRolPropietario("PROPIETARIO");
+            negocio.setUsuario(usuario);
+            negocios.add(negocio);
         }
 
-        usuarioRepository.saveAll(usuarios);
-        return ResponseEntity.ok(cantidad + " usuarios generados");
+        negocioRepository.saveAll(negocios);
+        return ResponseEntity.ok(cantidad + " usuarios (con su negocio) generados");
     }
 
     @PostMapping("/api/test/simular-logins")
     public ResponseEntity<String> simularLogins(@RequestParam(defaultValue = "1000") int cantidad){
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        int totalIntentados = Math.min(cantidad, usuarios.size());
+        List<Negocio> negocios = negocioRepository.findAll();
+        int totalIntentados = Math.min(cantidad, negocios.size());
         int exitosos = 0;
 
         for (int i = 0; i < totalIntentados; i++){
-            String correo = usuarios.get(i).getCorreo();
+            String correo = negocios.get(i).getUsuario().getCorreo();
             try {
-                LoginRequest request = new LoginRequest(correo, "Prueba123");
-                usuarioService.iniciaSesion(request);
+                usuarioService.iniciaSesion(new LoginRequest(correo, "Prueba123"));
                 exitosos++;
             } catch (Exception e){
-
             }
         }
 
-        return ResponseEntity.ok(
-                "Intentados: " + totalIntentados + " | Exitosos: " + exitosos
-        );
+        return ResponseEntity.ok("Intentados: " + totalIntentados + " | Exitosos: " + exitosos);
     }
 
     @PostMapping("/api/test/generar-negocios")
     public ResponseEntity<String> generarNegocios(@RequestParam(defaultValue = "1000") int cantidad){
         Faker faker = new Faker();
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        if (usuarios.isEmpty()){
+        List<Negocio> existentes = negocioRepository.findAll();
+        if (existentes.isEmpty()){
             return ResponseEntity.badRequest().body("No hay usuarios. Corre /api/test/generar-usuarios primero.");
         }
 
@@ -94,13 +95,14 @@ public class FakerController {
         List<Negocio> negocios = new ArrayList<>();
 
         for (int i = 0; i < cantidad; i++){
-            Usuario usuarioAleatorio = usuarios.get(random.nextInt(usuarios.size()));
+            Usuario usuarioAleatorio = existentes.get(random.nextInt(existentes.size())).getUsuario();
 
             Negocio negocio = new Negocio();
             negocio.setNombreNegocio(faker.company().name());
             negocio.setTipoActividad(tipos[random.nextInt(tipos.length)]);
             negocio.setCapitalInicial(100 + random.nextDouble() * 50000);
-            negocio.setUsuarioId(usuarioAleatorio.getIdUsuario());
+            negocio.setRolPropietario("PROPIETARIO");
+            negocio.setUsuario(usuarioAleatorio);
             negocios.add(negocio);
         }
 
