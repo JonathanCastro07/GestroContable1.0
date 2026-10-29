@@ -1,6 +1,8 @@
 package com.Proyecto.Gestor_Contable.controller;
 
 import com.Proyecto.Gestor_Contable.dtos.*;
+import com.Proyecto.Gestor_Contable.security.JwtUtil;
+import com.Proyecto.Gestor_Contable.security.TokenBlacklistService;
 import com.Proyecto.Gestor_Contable.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,9 +19,9 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
     @Autowired
-    private com.Proyecto.Gestor_Contable.security.JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;
     @Autowired
-    private com.Proyecto.Gestor_Contable.security.TokenBlacklistService tokenBlacklistService;
+    private TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/registro")
     public ResponseEntity<RegistroResponse> registrarse(@RequestBody RegistroRequest request){

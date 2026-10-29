@@ -10,6 +10,7 @@ import com.Proyecto.Gestor_Contable.repository.MovimientoRepository;
 import com.Proyecto.Gestor_Contable.repository.NegocioRepository;
 import com.Proyecto.Gestor_Contable.service.NegocioServicio;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +21,14 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class NegocioImpl implements NegocioServicio {
-
-    private final NegocioRepository negocioRepository;
-    private final MovimientoRepository movimientoRepository;
-
-    private final NegocioMapper negocioMapper;
+    @Autowired
+    private  NegocioRepository negocioRepository;
+    @Autowired
+    private  MovimientoRepository movimientoRepository;
+    @Autowired
+    private  NegocioMapper negocioMapper;
+    @Autowired
+    private  LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public NegocioResponse crear(NegocioRequest request) {
@@ -36,6 +40,8 @@ public class NegocioImpl implements NegocioServicio {
         nuevo.setUsuario(existente.getUsuario());
 
         Negocio guardado = negocioRepository.save(nuevo);
+        logAuditoria.registrar(guardado.getIdNegocio(),
+                "NEGOCIO_CREADO", "Negocio: " + guardado.getNombreNegocio());
         return negocioMapper.toResponse(guardado);
     }
 
@@ -58,6 +64,8 @@ public class NegocioImpl implements NegocioServicio {
         existente.setCapitalInicial(request.capitalInicial());
 
         Negocio actualizado = negocioRepository.save(existente);
+        logAuditoria.registrar(actualizado.getIdNegocio(),
+                "NEGOCIO_EDITADO", "Negocio: " + actualizado.getNombreNegocio());
         return negocioMapper.toResponse(actualizado);
     }
 
@@ -67,6 +75,7 @@ public class NegocioImpl implements NegocioServicio {
             throw new NegocioNoEncontradoException("Negocio no encontrado con id: " + id);
         }
         negocioRepository.deleteById(id);
+        logAuditoria.registrar(id, "NEGOCIO_ELIMINADO", "Negocio eliminado");
     }
 
     @Override

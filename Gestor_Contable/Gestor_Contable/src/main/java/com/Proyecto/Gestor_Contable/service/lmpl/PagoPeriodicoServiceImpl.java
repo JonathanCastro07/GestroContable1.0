@@ -31,11 +31,15 @@ public class PagoPeriodicoServiceImpl implements PagoPeriodicoService {
     private  PagoPeriodicoMapper pagoPeriodicoMapper;
     @Autowired
     private  EmbebidosMapper embebidos;
+    @Autowired
+    private  LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public PagoPeriodicoResponse crear(PagoPeriodicoRequest request) {
         PagoPeriodico pago = pagoPeriodicoMapper.toEntity(request);
         PagoPeriodico guardado = pagoRepository.save(pago);
+        logAuditoria.registrar(guardado.getNegocioId(), "PAGO_PERIODICO_CREADO",
+                "Pago periódico '" + guardado.getNombre() + "' por $" + guardado.getMonto());
         return pagoPeriodicoMapper.toResponse(guardado);
     }
 
@@ -86,15 +90,18 @@ public class PagoPeriodicoServiceImpl implements PagoPeriodicoService {
         existente.setOrigen(embebidos.toOrigen(request.origen()));
 
         PagoPeriodico actualizado = pagoRepository.save(existente);
+        logAuditoria.registrar(actualizado.getNegocioId(), "PAGO_PERIODICO_EDITADO",
+                "Pago periódico '" + actualizado.getNombre() + "' editado");
         return pagoPeriodicoMapper.toResponse(actualizado);
     }
 
     @Override
     public void eliminar(String id) {
-        if (!pagoRepository.existsById(id)) {
-            throw new PagoPeriodicoNoEncontradoException("Pago periódico no encontrado con id: " + id);
-        }
+        PagoPeriodico existente = pagoRepository.findById(id)
+                .orElseThrow(() -> new PagoPeriodicoNoEncontradoException("Pago periódico no encontrado con id: " + id));
         pagoRepository.deleteById(id);
+        logAuditoria.registrar(existente.getNegocioId(), "PAGO_PERIODICO_ELIMINADO",
+                "Pago periódico '" + existente.getNombre() + "' eliminado");
     }
 
     @Override
@@ -117,6 +124,9 @@ public class PagoPeriodicoServiceImpl implements PagoPeriodicoService {
 
         pago.setFechaPago(pago.getFechaPago().plusMonths(1));
         pagoRepository.save(pago);
+
+        logAuditoria.registrar(pago.getNegocioId(), "PAGO_PERIODICO_EJECUTADO",
+                "Pago periódico '" + pago.getNombre() + "' ejecutado por $" + pago.getMonto());
     }
 
     @Override

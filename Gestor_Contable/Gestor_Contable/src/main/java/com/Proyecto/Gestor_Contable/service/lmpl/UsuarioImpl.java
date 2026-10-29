@@ -29,6 +29,7 @@ public class UsuarioImpl implements UsuarioService {
     private final NegocioMapper negocioMapper;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
+    private final LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public RegistroResponse registrarse(RegistroRequest request) {
@@ -40,6 +41,8 @@ public class UsuarioImpl implements UsuarioService {
         negocio.getUsuario().setPassword(passwordEncoder.encode(request.password()));
 
         Negocio guardado = negocioRepository.save(negocio);
+        logAuditoria.registrar(guardado.getIdNegocio(), "REGISTRO",
+                "Registro del usuario " + request.correo());
         return negocioMapper.toRegistroResponse(guardado);
     }
 
@@ -49,11 +52,16 @@ public class UsuarioImpl implements UsuarioService {
                 .orElseThrow(() -> new CredencialesInvalidasException("Correo o contraseña incorrectos"));
 
         if (!passwordEncoder.matches(request.password(), negocio.getUsuario().getPassword())) {
+            logAuditoria.registrar(negocio.getIdNegocio(), "LOGIN_FALLIDO",
+                    "Contraseña incorrecta para " + request.correo());
             throw new CredencialesInvalidasException("Correo o contraseña incorrectos");
         }
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(negocio.getUsuario().getCorreo());
         String token = jwtUtil.generarToken(userDetails);
+
+        logAuditoria.registrar(negocio.getIdNegocio(), "LOGIN",
+                "Inicio de sesión de " + request.correo());
 
         return new LoginResponse(negocio.getUsuario().getNombre(), negocio.getUsuario().getCorreo(), token);
     }

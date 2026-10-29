@@ -29,11 +29,15 @@ public class MovimientoServiceImpl implements MovimientoService {
     private  MovimientoFinancieroMapper movimientoMapper;
     @Autowired
     private EmbebidosMapper embebidos;
+    @Autowired
+    private  LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public MovimientoFinancieroResponse registrarMovimiento(MovimientoFinancieroRequest request) {
         MovimientoFinanciero movimiento = movimientoMapper.toEntity(request);
         MovimientoFinanciero guardado = movimientoRepository.save(movimiento);
+        logAuditoria.registrar(guardado.getNegocioId(), "MOVIMIENTO_CREADO",
+                "Movimiento " + guardado.getIdMovimiento() + " por $" + guardado.getMonto());
         return movimientoMapper.toResponse(guardado);
     }
 
@@ -52,15 +56,18 @@ public class MovimientoServiceImpl implements MovimientoService {
         existente.setPeriodo(Periodo.de(fecha));
 
         MovimientoFinanciero actualizado = movimientoRepository.save(existente);
+        logAuditoria.registrar(actualizado.getNegocioId(), "MOVIMIENTO_EDITADO",
+                "Movimiento " + id + " editado, monto $" + actualizado.getMonto());
         return movimientoMapper.toResponse(actualizado);
     }
 
     @Override
     public void eliminarMovimiento(String id) {
-        if (!movimientoRepository.existsById(id)) {
-            throw new MovimientoFinancieroNoEncontradoException("Movimiento no encontrado con id: " + id);
-        }
+        MovimientoFinanciero existente = movimientoRepository.findById(id)
+                .orElseThrow(() -> new MovimientoFinancieroNoEncontradoException("Movimiento no encontrado con id: " + id));
         movimientoRepository.deleteById(id);
+        logAuditoria.registrar(existente.getNegocioId(), "MOVIMIENTO_ELIMINADO",
+                "Movimiento " + id + " eliminado");
     }
 
     @Override

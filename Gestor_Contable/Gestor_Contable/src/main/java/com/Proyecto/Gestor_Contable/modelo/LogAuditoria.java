@@ -19,7 +19,7 @@ public class LogAuditoria {
 
     @Id
     private String id;
-    private String usuarioId;
+    private String negocioId;
     private String accion;
     private String detalle;
     private LocalDateTime fecha;

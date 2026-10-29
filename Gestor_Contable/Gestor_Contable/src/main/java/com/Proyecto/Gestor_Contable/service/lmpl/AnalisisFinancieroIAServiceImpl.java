@@ -4,6 +4,7 @@ import com.Proyecto.Gestor_Contable.dtos.AnalisisFinancieroIAResponse;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoResumenResponse;
 import com.Proyecto.Gestor_Contable.mapper.AnalisisFinancieroIAMapper;
 import com.Proyecto.Gestor_Contable.modelo.AnalisisFinancieroIA;
+import com.Proyecto.Gestor_Contable.modelo.Periodo;
 import com.Proyecto.Gestor_Contable.repository.AnalisisFinancieroIARepository;
 import com.Proyecto.Gestor_Contable.service.AnalisisFinancieroIAService;
 import com.Proyecto.Gestor_Contable.service.ClienteIAService;
@@ -19,12 +20,12 @@ public class AnalisisFinancieroIAServiceImpl implements AnalisisFinancieroIAServ
 
     @Autowired
     private AnalisisFinancieroIARepository analisisRepository;
-
     @Autowired
     private MovimientoService movimientoService;
-
     @Autowired
     private ClienteIAService clienteIAService;
+    @Autowired
+    private LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public AnalisisFinancieroIAResponse generarAnalisis(String negocioId, String periodo) {
@@ -35,14 +36,17 @@ public class AnalisisFinancieroIAServiceImpl implements AnalisisFinancieroIAServ
 
         String textoGenerado = clienteIAService.generarTexto(prompt);
 
+        LocalDateTime ahora = LocalDateTime.now();
+
         AnalisisFinancieroIA analisis = new AnalisisFinancieroIA();
         analisis.setNegocioId(negocioId);
-        analisis.setPeriodo(periodo);
+        analisis.setPeriodo(Periodo.de(ahora));
         analisis.setTextoGenerado(textoGenerado);
         analisis.setTipoAlerta(determinarTipoAlerta(resumen));
-        analisis.setFechaGeneracion(LocalDateTime.now());
+        analisis.setFechaGeneracion(ahora);
 
         AnalisisFinancieroIA guardado = analisisRepository.save(analisis);
+        logAuditoria.registrar(negocioId, "ANALISIS_IA_GENERADO", "Período: " + periodo);
         return AnalisisFinancieroIAMapper.toResponse(guardado);
     }
 
