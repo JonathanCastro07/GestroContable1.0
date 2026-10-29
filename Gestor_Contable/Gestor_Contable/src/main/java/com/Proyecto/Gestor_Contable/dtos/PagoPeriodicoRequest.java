@@ -6,7 +6,8 @@ public record PagoPeriodicoRequest(
         String nombre,
         Double monto,
         LocalDate fecha,
+        String descripcion,
         String negocioId,
-        String tipoMovimientoId,
-        String origenId
+        TipoMovimientoDto tipoMovimiento,
+        OrigenDto origen
 ) {}

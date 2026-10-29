@@ -2,9 +2,8 @@ package com.Proyecto.Gestor_Contable.dtos;
 
 import com.Proyecto.Gestor_Contable.modelo.TipoOrigen;
 
-public record OrigenResponse(
+public record OrigenDto(
         String id,
-        String descripcion,
-        TipoOrigen tipoOrigen
-
-) {}
+        String nombre,
+        TipoOrigen tipoOrigen)
+{}

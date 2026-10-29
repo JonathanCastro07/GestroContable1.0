@@ -23,10 +23,7 @@ public class MovimientoFinanciero implements Serializable {
     private LocalDateTime fecha;
     private String descripcion;
     private String negocioId;
-    private String tipoMovimientoId;
-    private String origenId;
-    private String periodoId;
-
-
-
+    private Origen origen;
+    private TipoMovimiento tipoMovimiento;
+    private Periodo periodo;
 }

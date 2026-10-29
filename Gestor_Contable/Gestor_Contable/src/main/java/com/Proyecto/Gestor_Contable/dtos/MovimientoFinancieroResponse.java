@@ -8,7 +8,7 @@ public record MovimientoFinancieroResponse(
         LocalDateTime fecha,
         String descricion,
         String negocioId,
-        String tipoId,
-        String origenId,
-        String periodoId
+        TipoMovimientoDto tipoMovimiento,
+        OrigenDto origen,
+        PeriodoDto periodo
 ) {}

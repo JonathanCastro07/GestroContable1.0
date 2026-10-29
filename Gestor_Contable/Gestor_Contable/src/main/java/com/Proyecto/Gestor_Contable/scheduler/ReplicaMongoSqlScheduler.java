@@ -5,6 +5,7 @@ import com.Proyecto.Gestor_Contable.modelo.sql.*;
 import com.Proyecto.Gestor_Contable.repository.*;
 import com.Proyecto.Gestor_Contable.repository.sql.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -15,67 +16,77 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ReplicaMongoSqlScheduler {
 
-    private final OrigenRepository origenRepository;
-    private final OrigenSqlRepository origenSqlRepository;
-
-    private final TipoMovimientoRepository tipoMovimientoRepository;
-    private final TipoMovimientoSqlRepository tipoMovimientoSqlRepository;
-
-    private final PeriodoRepository periodoRepository;
-    private final PeriodoSqlRepository periodoSqlRepository;
-
-    private final PagoPeriodicoRepository pagoPeriodicoRepository;
-    private final PagoPeriodicoSqlRepository pagoPeriodicoSqlRepository;
-
-    private final NegocioRepository negocioRepository;
-    private final NegocioSqlRepository negocioSqlRepository;
-
-    private final MovimientoRepository movimientoRepository;
-    private final MovimientoFinancieroSqlRepository movimientoSqlRepository;
-
-    private final UsuarioSqlRepository usuarioSqlRepository;
-
+    @Autowired
+    private  OrigenSqlRepository origenSqlRepository;
+    @Autowired
+    private  TipoMovimientoSqlRepository tipoMovimientoSqlRepository;
+    @Autowired
+    private  PeriodoSqlRepository periodoSqlRepository;
+    @Autowired
+    private  PagoPeriodicoRepository pagoPeriodicoRepository;
+    @Autowired
+    private  PagoPeriodicoSqlRepository pagoPeriodicoSqlRepository;
+    @Autowired
+    private  NegocioRepository negocioRepository;
+    @Autowired
+    private  NegocioSqlRepository negocioSqlRepository;
+    @Autowired
+    private  MovimientoRepository movimientoRepository;
+    @Autowired
+    private  MovimientoFinancieroSqlRepository movimientoSqlRepository;
+    @Autowired
+    private  UsuarioSqlRepository usuarioSqlRepository;
 
     @Scheduled(fixedRate = 360000)
     public void replicarTodo() {
-        replicarOrigen();
-        replicarTipoMovimiento();
-        replicarPeriodo();
+        replicarCatalogos();
         replicarPagoPeriodico();
         replicarNegocio();
         replicarMovimiento();
         replicarUsuario();
     }
 
-    private void replicarOrigen() {
-        origenRepository.findAll().forEach(o -> {
-            OrigenSql sql = new OrigenSql();
-            sql.setIdOrigen(o.getIdOrigen());
-            sql.setNombre(o.getNombre());
-            sql.setDescripcion(o.getDescripcion());
-            sql.setTipoOrigen(o.getTipoOrigen());
-            origenSqlRepository.save(sql);
+    private void replicarCatalogos() {
+        Set<String> origenes = new HashSet<>();
+        Set<String> tipos = new HashSet<>();
+        Set<String> periodos = new HashSet<>();
+
+        movimientoRepository.findAll().forEach(m -> {
+            guardarOrigen(m.getOrigen(), origenes);
+            guardarTipo(m.getTipoMovimiento(), tipos);
+            guardarPeriodo(m.getPeriodo(), periodos);
+        });
+        pagoPeriodicoRepository.findAll().forEach(p -> {
+            guardarOrigen(p.getOrigen(), origenes);
+            guardarTipo(p.getTipoMovimiento(), tipos);
         });
     }
 
-    private void replicarTipoMovimiento() {
-        tipoMovimientoRepository.findAll().forEach(t -> {
-            TipoMovimientoSql sql = new TipoMovimientoSql();
-            sql.setIdTipoMovimiento(t.getIdTipoMovimiento());
-            sql.setNombre(t.getNombre());
-            sql.setNaturaleza(t.getNaturaleza());
-            tipoMovimientoSqlRepository.save(sql);
-        });
+    private void guardarOrigen(Origen o, Set<String> yaGuardados) {
+        if (o == null || o.getIdOrigen() == null || !yaGuardados.add(o.getIdOrigen())) return;
+        OrigenSql sql = new OrigenSql();
+        sql.setIdOrigen(o.getIdOrigen());
+        sql.setNombre(o.getNombre());
+        sql.setTipoOrigen(o.getTipoOrigen());
+        origenSqlRepository.save(sql);
     }
 
-    private void replicarPeriodo() {
-        periodoRepository.findAll().forEach(p -> {
-            PeriodoSql sql = new PeriodoSql();
-            sql.setIdPeriodo(p.getIdPeriodo());
-            sql.setMes(p.getMes());
-            sql.setAnio(p.getAnio());
-            periodoSqlRepository.save(sql);
-        });
+    private void guardarTipo(TipoMovimiento t, Set<String> yaGuardados) {
+        if (t == null || t.getIdTipoMovimiento() == null || !yaGuardados.add(t.getIdTipoMovimiento())) return;
+        TipoMovimientoSql sql = new TipoMovimientoSql();
+        sql.setIdTipoMovimiento(t.getIdTipoMovimiento());
+        sql.setNombre(t.getNombre());
+        sql.setNaturaleza(t.getNaturaleza());
+        tipoMovimientoSqlRepository.save(sql);
+    }
+
+    private void guardarPeriodo(Periodo p, Set<String> yaGuardados) {
+        if (p == null || p.getIdPeriodo() == null || !yaGuardados.add(p.getIdPeriodo())) return;
+        PeriodoSql sql = new PeriodoSql();
+        sql.setIdPeriodo(p.getIdPeriodo());
+        sql.setMes(p.getMes());
+        sql.setAnio(p.getAnio());
+        periodoSqlRepository.save(sql);
     }
 
     private void replicarPagoPeriodico() {
@@ -88,8 +99,8 @@ public class ReplicaMongoSqlScheduler {
             sql.setActivo(p.isActivo());
             sql.setDescripcion(p.getDescripcion());
             sql.setNegocioId(p.getNegocioId());
-            sql.setTipoMovimientoId(p.getTipoMovimientoId());
-            sql.setOrigenId(p.getOrigenId());
+            sql.setTipoMovimientoId(p.getTipoMovimiento() != null ? p.getTipoMovimiento().getIdTipoMovimiento() : null);
+            sql.setOrigenId(p.getOrigen() != null ? p.getOrigen().getIdOrigen() : null);
             pagoPeriodicoSqlRepository.save(sql);
         });
     }
@@ -115,9 +126,9 @@ public class ReplicaMongoSqlScheduler {
             sql.setFecha(m.getFecha());
             sql.setDescripcion(m.getDescripcion());
             sql.setNegocioId(m.getNegocioId());
-            sql.setTipoMovimientoId(m.getTipoMovimientoId());
-            sql.setOrigenId(m.getOrigenId());
-            sql.setPeriodoId(m.getPeriodoId());
+            sql.setTipoMovimientoId(m.getTipoMovimiento() != null ? m.getTipoMovimiento().getIdTipoMovimiento() : null);
+            sql.setOrigenId(m.getOrigen() != null ? m.getOrigen().getIdOrigen() : null);
+            sql.setPeriodoId(m.getPeriodo() != null ? m.getPeriodo().getIdPeriodo() : null);
             movimientoSqlRepository.save(sql);
         });
     }
@@ -126,9 +137,7 @@ public class ReplicaMongoSqlScheduler {
         Set<String> yaReplicados = new HashSet<>();
         negocioRepository.findAll().forEach(n -> {
             Usuario u = n.getUsuario();
-            if (u == null || u.getCorreo() == null || !yaReplicados.add(u.getCorreo())) {
-                return;
-            }
+            if (u == null || u.getCorreo() == null || !yaReplicados.add(u.getCorreo())) return;
             UsuarioSql sql = new UsuarioSql();
             sql.setIdUsuario(u.getCorreo());
             sql.setNombre(u.getNombre());
