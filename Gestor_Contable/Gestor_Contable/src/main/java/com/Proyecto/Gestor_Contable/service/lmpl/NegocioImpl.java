@@ -30,24 +30,24 @@ public class NegocioImpl implements NegocioServicio {
     private final MovimientoRepository movimientoRepository;
     private final TipoMovimientoRepository tipoMovimientoRepository;
     private final NegocioMapper negocioMapper;
-    private final UsuarioRepository usuarioRepository;
 
     @Override
     public NegocioResponse crear(NegocioRequest request) {
         String correo = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario usuario = usuarioRepository.findByCorreo(correo)
-                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con correo: " + correo));
+        Negocio existente = negocioRepository.findFirstByUsuario_Correo(correo)
+                .orElseThrow(() -> new NegocioNoEncontradoException("No se encontró información del usuario autenticado"));
 
-        Negocio negocio = negocioMapper.toEntity(request);
-        negocio.setUsuarioId(usuario.getIdUsuario());
+        Negocio nuevo = negocioMapper.toEntity(request);
+        nuevo.setUsuario(existente.getUsuario());
 
-        Negocio guardado = negocioRepository.save(negocio);
+        Negocio guardado = negocioRepository.save(nuevo);
         return negocioMapper.toResponse(guardado);
     }
 
     @Override
-    public List<NegocioResponse> listarPorUsuario(String idUsuario) {
-        return negocioRepository.findByUsuarioId(idUsuario)
+    public List<NegocioResponse> listarPorUsuarioAutenticado() {
+        String correo = SecurityContextHolder.getContext().getAuthentication().getName();
+        return negocioRepository.findByUsuario_Correo(correo)
                 .stream()
                 .map(negocioMapper::toResponse)
                 .toList();
@@ -79,11 +79,9 @@ public class NegocioImpl implements NegocioServicio {
         if (!negocioRepository.existsById(idNegocio)) {
             throw new NegocioNoEncontradoException("Negocio no encontrado con id: " + idNegocio);
         }
-
         double totalIngresos = sumarPorTipo(idNegocio, "INGRESO");
         double totalEgresos = sumarPorTipo(idNegocio, "EGRESO");
         double totalGastos = sumarPorTipo(idNegocio, "GASTO");
-
         return totalIngresos - totalEgresos - totalGastos;
     }
 
@@ -92,7 +90,6 @@ public class NegocioImpl implements NegocioServicio {
         if (!negocioRepository.existsById(idNegocio)) {
             throw new NegocioNoEncontradoException("Negocio no encontrado con id: " + idNegocio);
         }
-
         double totalIngresos = sumarPorTipo(idNegocio, "INGRESO");
         double totalEgresos = sumarPorTipo(idNegocio, "EGRESO");
         double totalGastos = sumarPorTipo(idNegocio, "GASTO");
@@ -104,6 +101,7 @@ public class NegocioImpl implements NegocioServicio {
         resumen.put("utilidad", totalIngresos - totalEgresos - totalGastos);
         return resumen;
     }
+
 
     private double sumarPorTipo(String idNegocio, String nombreTipo) {
         List<TipoMovimiento> tipos = tipoMovimientoRepository.findAll()

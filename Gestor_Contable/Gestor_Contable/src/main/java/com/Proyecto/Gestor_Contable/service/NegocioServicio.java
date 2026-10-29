@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface NegocioServicio {
     NegocioResponse crear(NegocioRequest request);
-    List<NegocioResponse> listarPorUsuario(String idUsuario);
+    List<NegocioResponse> listarPorUsuarioAutenticado();
     NegocioResponse actualizar(String id, NegocioRequest request);
     void eliminar(String id);
     double calcularUtilidades(String idNegocio);
