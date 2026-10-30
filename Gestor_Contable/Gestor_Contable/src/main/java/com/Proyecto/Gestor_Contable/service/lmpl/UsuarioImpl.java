@@ -1,14 +1,14 @@
 package com.Proyecto.Gestor_Contable.service.lmpl;
 
-import com.Proyecto.Gestor_Contable.dtos.LoginRequest;
-import com.Proyecto.Gestor_Contable.dtos.LoginResponse;
-import com.Proyecto.Gestor_Contable.dtos.RegistroRequest;
-import com.Proyecto.Gestor_Contable.dtos.UsuarioResponse;
+import com.Proyecto.Gestor_Contable.dtos.*;
 import com.Proyecto.Gestor_Contable.exception.CredencialesInvalidasException;
 import com.Proyecto.Gestor_Contable.exception.EmailYaRegistradoException;
 import com.Proyecto.Gestor_Contable.exception.UsuarioNoEncontradoException;
 import com.Proyecto.Gestor_Contable.mapper.MapperUsuario;
+import com.Proyecto.Gestor_Contable.mapper.NegocioMapper;
+import com.Proyecto.Gestor_Contable.modelo.Negocio;
 import com.Proyecto.Gestor_Contable.modelo.Usuario;
+import com.Proyecto.Gestor_Contable.repository.NegocioRepository;
 import com.Proyecto.Gestor_Contable.repository.UsuarioRepository;
 import com.Proyecto.Gestor_Contable.security.CustomUserDetailsService;
 import com.Proyecto.Gestor_Contable.security.JwtUtil;
@@ -24,76 +24,45 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UsuarioImpl implements UsuarioService {
 
-    private final UsuarioRepository usuarioRepository;
+    private final NegocioRepository negocioRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MapperUsuario mapperUsuario;
+    private final NegocioMapper negocioMapper;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
+    private final LogAuditoriaServiceImpl logAuditoria;
 
     @Override
-    public UsuarioResponse registrarse(RegistroRequest request) {
-        if (usuarioRepository.existsByCorreo(request.correo())) {
+    public RegistroResponse registrarse(RegistroRequest request) {
+        if (negocioRepository.existsByUsuario_Correo(request.correo())) {
             throw new EmailYaRegistradoException("El correo ya está registrado");
         }
 
-        Usuario usuario = mapperUsuario.toEntity(request);
-        usuario.setPassword(passwordEncoder.encode(request.password()));
+        Negocio negocio = negocioMapper.toEntityConUsuario(request);
+        negocio.getUsuario().setPassword(passwordEncoder.encode(request.password()));
 
-        Usuario guardado = usuarioRepository.save(usuario);
-        return mapperUsuario.toResponse(guardado);
+        Negocio guardado = negocioRepository.save(negocio);
+        logAuditoria.registrar(guardado.getIdNegocio(), "REGISTRO",
+                "Registro del usuario " + request.correo());
+        return negocioMapper.toRegistroResponse(guardado);
     }
 
     @Override
     public LoginResponse iniciaSesion(LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreo(request.correo())
+        Negocio negocio = negocioRepository.findFirstByUsuario_Correo(request.correo())
                 .orElseThrow(() -> new CredencialesInvalidasException("Correo o contraseña incorrectos"));
 
-        if (!passwordEncoder.matches(request.password(), usuario.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), negocio.getUsuario().getPassword())) {
+            logAuditoria.registrar(negocio.getIdNegocio(), "LOGIN_FALLIDO",
+                    "Contraseña incorrecta para " + request.correo());
             throw new CredencialesInvalidasException("Correo o contraseña incorrectos");
         }
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(usuario.getCorreo());
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(negocio.getUsuario().getCorreo());
         String token = jwtUtil.generarToken(userDetails);
 
-        return new LoginResponse(usuario.getNombre(), usuario.getCorreo(), token);
-    }
+        logAuditoria.registrar(negocio.getIdNegocio(), "LOGIN",
+                "Inicio de sesión de " + request.correo());
 
-    @Override
-    public List<UsuarioResponse> listarTodo() {
-        return usuarioRepository.findAll()
-                .stream()
-                .map(mapperUsuario::toResponse)
-                .toList();
-    }
-
-    @Override
-    public UsuarioResponse buscarPorId(String id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id));
-        return mapperUsuario.toResponse(usuario);
-    }
-
-    @Override
-    public UsuarioResponse actualizar(String id, RegistroRequest request) {
-        Usuario existente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id));
-
-        existente.setNombre(request.nombre());
-        existente.setCorreo(request.correo());
-        existente.setPreguntaSeguridad(request.preguntaSeguridad());
-        if (request.password() != null && !request.password().isBlank()) {
-            existente.setPassword(passwordEncoder.encode(request.password()));
-        }
-
-        Usuario actualizado = usuarioRepository.save(existente);
-        return mapperUsuario.toResponse(actualizado);
-    }
-
-    @Override
-    public void eliminar(String id) {
-        if (!usuarioRepository.existsById(id)) {
-            throw new UsuarioNoEncontradoException("Usuario no encontrado con id: " + id);
-        }
-        usuarioRepository.deleteById(id);
+        return new LoginResponse(negocio.getUsuario().getNombre(), negocio.getUsuario().getCorreo(), token);
     }
 }

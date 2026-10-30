@@ -3,38 +3,41 @@ package com.Proyecto.Gestor_Contable.service.lmpl;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroRequest;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroResponse;
 import com.Proyecto.Gestor_Contable.exception.MovimientoFinancieroNoEncontradoException;
+import com.Proyecto.Gestor_Contable.mapper.EmbebidosMapper;
 import com.Proyecto.Gestor_Contable.mapper.MovimientoFinancieroMapper;
 import com.Proyecto.Gestor_Contable.modelo.MovimientoFinanciero;
 import com.Proyecto.Gestor_Contable.modelo.Periodo;
 import com.Proyecto.Gestor_Contable.repository.MovimientoRepository;
-import com.Proyecto.Gestor_Contable.repository.PeriodoRepository;
 import com.Proyecto.Gestor_Contable.service.MovimientoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoResumenResponse;
-import com.Proyecto.Gestor_Contable.modelo.TipoMovimiento;
-import com.Proyecto.Gestor_Contable.repository.TipoMovimientoRepository;
 
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MovimientoServiceImpl implements MovimientoService {
 
-    private final TipoMovimientoRepository tipoMovimientoRepository;
-    private final MovimientoRepository movimientoRepository;
-    private final PeriodoRepository periodoRepository;
-    private final MovimientoFinancieroMapper movimientoMapper;
+    @Autowired
+    private  MovimientoRepository movimientoRepository;
+    @Autowired
+    private  MovimientoFinancieroMapper movimientoMapper;
+    @Autowired
+    private EmbebidosMapper embebidos;
+    @Autowired
+    private  LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public MovimientoFinancieroResponse registrarMovimiento(MovimientoFinancieroRequest request) {
         MovimientoFinanciero movimiento = movimientoMapper.toEntity(request);
         MovimientoFinanciero guardado = movimientoRepository.save(movimiento);
+        logAuditoria.registrar(guardado.getNegocioId(), "MOVIMIENTO_CREADO",
+                "Movimiento " + guardado.getIdMovimiento() + " por $" + guardado.getMonto());
         return movimientoMapper.toResponse(guardado);
     }
 
@@ -43,24 +46,28 @@ public class MovimientoServiceImpl implements MovimientoService {
         MovimientoFinanciero existente = movimientoRepository.findById(id)
                 .orElseThrow(() -> new MovimientoFinancieroNoEncontradoException("Movimiento no encontrado con id: " + id));
 
+        LocalDateTime fecha = request.fecha().atStartOfDay();
         existente.setMonto(request.monto());
-        existente.setFecha(request.fecha().atStartOfDay());
+        existente.setFecha(fecha);
         existente.setDescripcion(request.descricion());
         existente.setNegocioId(request.negocioId());
-        existente.setTipoMovimientoId(request.tipoId());
-        existente.setOrigenId(request.origenId());
-        existente.setPeriodoId(request.periodoId());
+        existente.setTipoMovimiento(embebidos.toTipo(request.tipoMovimiento()));
+        existente.setOrigen(embebidos.toOrigen(request.origen()));
+        existente.setPeriodo(Periodo.de(fecha));
 
         MovimientoFinanciero actualizado = movimientoRepository.save(existente);
+        logAuditoria.registrar(actualizado.getNegocioId(), "MOVIMIENTO_EDITADO",
+                "Movimiento " + id + " editado, monto $" + actualizado.getMonto());
         return movimientoMapper.toResponse(actualizado);
     }
 
     @Override
     public void eliminarMovimiento(String id) {
-        if (!movimientoRepository.existsById(id)) {
-            throw new MovimientoFinancieroNoEncontradoException("Movimiento no encontrado con id: " + id);
-        }
+        MovimientoFinanciero existente = movimientoRepository.findById(id)
+                .orElseThrow(() -> new MovimientoFinancieroNoEncontradoException("Movimiento no encontrado con id: " + id));
         movimientoRepository.deleteById(id);
+        logAuditoria.registrar(existente.getNegocioId(), "MOVIMIENTO_ELIMINADO",
+                "Movimiento " + id + " eliminado");
     }
 
     @Override
@@ -81,13 +88,7 @@ public class MovimientoServiceImpl implements MovimientoService {
 
     @Override
     public List<MovimientoFinancieroResponse> listarPorPeriodo(String idNegocio, String mes, Integer anio) {
-        Optional<Periodo> periodo = periodoRepository.findByMesAndAnio(mes, anio);
-
-        if (periodo.isEmpty()) {
-            return List.of();
-        }
-
-        return movimientoRepository.findByNegocioIdAndPeriodoId(idNegocio, periodo.get().getIdPeriodo())
+        return movimientoRepository.findByNegocioIdAndPeriodo_MesIgnoreCaseAndPeriodo_Anio(idNegocio, mes, anio)
                 .stream()
                 .map(movimientoMapper::toResponse)
                 .toList();
@@ -108,13 +109,9 @@ public class MovimientoServiceImpl implements MovimientoService {
                 .filter(m -> !m.getFecha().toLocalDate().isBefore(desde) && !m.getFecha().toLocalDate().isAfter(hasta))
                 .toList();
 
-        Map<String, String> nombrePorTipoId = tipoMovimientoRepository.findAll()
-                .stream()
-                .collect(Collectors.toMap(TipoMovimiento::getIdTipoMovimiento, TipoMovimiento::getNombre));
-
-        double totalIngresos = sumarPorNombreTipo(movimientos, nombrePorTipoId, "INGRESO");
-        double totalEgresos = sumarPorNombreTipo(movimientos, nombrePorTipoId, "EGRESO");
-        double totalGastos = sumarPorNombreTipo(movimientos, nombrePorTipoId, "GASTO");
+        double totalIngresos = sumarPorNombreTipo(movimientos, "INGRESO");
+        double totalEgresos = sumarPorNombreTipo(movimientos, "EGRESO");
+        double totalGastos = sumarPorNombreTipo(movimientos, "GASTO");
 
         return new MovimientoResumenResponse(
                 periodo,
@@ -126,9 +123,10 @@ public class MovimientoServiceImpl implements MovimientoService {
         );
     }
 
-    private double sumarPorNombreTipo(List<MovimientoFinanciero> movimientos, Map<String, String> nombrePorTipoId, String nombreTipo) {
+    private double sumarPorNombreTipo(List<MovimientoFinanciero> movimientos, String nombreTipo) {
         return movimientos.stream()
-                .filter(m -> nombreTipo.equalsIgnoreCase(nombrePorTipoId.get(m.getTipoMovimientoId())))
+                .filter(m -> m.getTipoMovimiento() != null
+                        && nombreTipo.equalsIgnoreCase(m.getTipoMovimiento().getNombre()))
                 .mapToDouble(MovimientoFinanciero::getMonto)
                 .sum();
     }

@@ -4,6 +4,11 @@ public record RegistroRequest(
         String nombre,
         String correo,
         String password,
-        String preguntaSeguridad
-
+        String telefono,
+        String preguntaSeguridad,
+        String respuestaSeguridad,
+        String nombreNegocio,
+        String tipoActividad,
+        double capitalInicial,
+        String rolPropietario
 ) {}

@@ -6,8 +6,11 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NegocioRepository extends MongoRepository<Negocio, String> {
-    List<Negocio> findByUsuarioId(String usuarioId);
+    List<Negocio> findByUsuario_Correo(String correo);
+    Optional<Negocio> findFirstByUsuario_Correo(String correo);
+    boolean existsByUsuario_Correo(String correo);
 }
