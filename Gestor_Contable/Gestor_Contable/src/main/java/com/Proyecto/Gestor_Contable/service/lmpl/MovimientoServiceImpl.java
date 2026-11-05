@@ -24,13 +24,13 @@ import java.util.List;
 public class MovimientoServiceImpl implements MovimientoService {
 
     @Autowired
-    private  MovimientoRepository movimientoRepository;
+    private MovimientoRepository movimientoRepository;
     @Autowired
-    private  MovimientoFinancieroMapper movimientoMapper;
+    private MovimientoFinancieroMapper movimientoMapper;
     @Autowired
     private EmbebidosMapper embebidos;
     @Autowired
-    private  LogAuditoriaServiceImpl logAuditoria;
+    private LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public MovimientoFinancieroResponse registrarMovimiento(MovimientoFinancieroRequest request) {
