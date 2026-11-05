@@ -8,7 +8,8 @@ public record PagoPeriodicoResponse(
         Double monto,
         LocalDate fecha,
         Boolean activo,
+        String descripcion,
         String negocioId,
-        String tipoMovimientoId,
-        String origenId
+        TipoMovimientoDto tipoMovimiento,
+        OrigenDto origen
 ) {}

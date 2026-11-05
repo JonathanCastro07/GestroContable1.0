@@ -23,9 +23,9 @@ public class NegocioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(negocioServicio.crear(request));
     }
 
-    @GetMapping("/usuario/{id}")
-    public ResponseEntity<List<NegocioResponse>> listarPorUsuario(@PathVariable("id") String idUsuario){
-        return ResponseEntity.ok(negocioServicio.listarPorUsuario(idUsuario));
+    @GetMapping("/mis-negocios")
+    public ResponseEntity<List<NegocioResponse>> listarMisNegocios(){
+        return ResponseEntity.ok(negocioServicio.listarPorUsuarioAutenticado());
     }
 
     @PreAuthorize("@negocioSecurity.esDueno(#id, authentication.name)")

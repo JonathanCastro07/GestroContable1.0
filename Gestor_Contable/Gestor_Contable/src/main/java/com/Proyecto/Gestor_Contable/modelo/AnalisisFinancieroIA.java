@@ -17,7 +17,7 @@ public class AnalisisFinancieroIA {
     @Id
     private String id;
     private String negocioId;
-    private String periodo;
+    private Periodo periodo;
     private String textoGenerado;
     private String tipoAlerta;
     private LocalDateTime fechaGeneracion;

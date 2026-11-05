@@ -3,20 +3,28 @@ package com.Proyecto.Gestor_Contable.mapper;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroRequest;
 import com.Proyecto.Gestor_Contable.dtos.MovimientoFinancieroResponse;
 import com.Proyecto.Gestor_Contable.modelo.MovimientoFinanciero;
+import com.Proyecto.Gestor_Contable.modelo.Periodo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 @Component
 public class MovimientoFinancieroMapper {
+    @Autowired
+    private EmbebidosMapper embebidos;
 
     public MovimientoFinanciero toEntity(MovimientoFinancieroRequest request) {
+        LocalDateTime fecha = request.fecha().atStartOfDay();
+
         MovimientoFinanciero movimiento = new MovimientoFinanciero();
         movimiento.setMonto(request.monto());
-        movimiento.setFecha(request.fecha().atStartOfDay());
+        movimiento.setFecha(fecha);
         movimiento.setDescripcion(request.descricion());
         movimiento.setNegocioId(request.negocioId());
-        movimiento.setTipoMovimientoId(request.tipoId());
-        movimiento.setOrigenId(request.origenId());
-        movimiento.setPeriodoId(request.periodoId());
+        movimiento.setTipoMovimiento(embebidos.toTipo(request.tipoMovimiento()));
+        movimiento.setOrigen(embebidos.toOrigen(request.origen()));
+        movimiento.setPeriodo(Periodo.de(fecha));
         return movimiento;
     }
 
@@ -27,9 +35,9 @@ public class MovimientoFinancieroMapper {
                 movimiento.getFecha(),
                 movimiento.getDescripcion(),
                 movimiento.getNegocioId(),
-                movimiento.getTipoMovimientoId(),
-                movimiento.getOrigenId(),
-                movimiento.getPeriodoId()
+                embebidos.toDto(movimiento.getTipoMovimiento()),
+                embebidos.toDto(movimiento.getOrigen()),
+                embebidos.toDto(movimiento.getPeriodo())
         );
     }
 }

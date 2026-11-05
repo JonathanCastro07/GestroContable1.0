@@ -19,6 +19,6 @@ public class Negocio {
     private String tipoActividad;
     private double capitalInicial;
     private String rolPropietario;
-    private String usuarioId;
+    private Usuario usuario;
 
 }

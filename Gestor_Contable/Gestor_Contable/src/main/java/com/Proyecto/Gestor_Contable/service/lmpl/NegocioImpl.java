@@ -3,18 +3,14 @@ package com.Proyecto.Gestor_Contable.service.lmpl;
 import com.Proyecto.Gestor_Contable.dtos.NegocioRequest;
 import com.Proyecto.Gestor_Contable.dtos.NegocioResponse;
 import com.Proyecto.Gestor_Contable.exception.NegocioNoEncontradoException;
-import com.Proyecto.Gestor_Contable.exception.UsuarioNoEncontradoException;
 import com.Proyecto.Gestor_Contable.mapper.NegocioMapper;
 import com.Proyecto.Gestor_Contable.modelo.MovimientoFinanciero;
 import com.Proyecto.Gestor_Contable.modelo.Negocio;
-import com.Proyecto.Gestor_Contable.modelo.TipoMovimiento;
-import com.Proyecto.Gestor_Contable.modelo.Usuario;
 import com.Proyecto.Gestor_Contable.repository.MovimientoRepository;
 import com.Proyecto.Gestor_Contable.repository.NegocioRepository;
-import com.Proyecto.Gestor_Contable.repository.TipoMovimientoRepository;
-import com.Proyecto.Gestor_Contable.repository.UsuarioRepository;
 import com.Proyecto.Gestor_Contable.service.NegocioServicio;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -25,29 +21,34 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class NegocioImpl implements NegocioServicio {
-
-    private final NegocioRepository negocioRepository;
-    private final MovimientoRepository movimientoRepository;
-    private final TipoMovimientoRepository tipoMovimientoRepository;
-    private final NegocioMapper negocioMapper;
-    private final UsuarioRepository usuarioRepository;
+    @Autowired
+    private  NegocioRepository negocioRepository;
+    @Autowired
+    private  MovimientoRepository movimientoRepository;
+    @Autowired
+    private  NegocioMapper negocioMapper;
+    @Autowired
+    private  LogAuditoriaServiceImpl logAuditoria;
 
     @Override
     public NegocioResponse crear(NegocioRequest request) {
         String correo = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario usuario = usuarioRepository.findByCorreo(correo)
-                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con correo: " + correo));
+        Negocio existente = negocioRepository.findFirstByUsuario_Correo(correo)
+                .orElseThrow(() -> new NegocioNoEncontradoException("No se encontró información del usuario autenticado"));
 
-        Negocio negocio = negocioMapper.toEntity(request);
-        negocio.setUsuarioId(usuario.getIdUsuario());
+        Negocio nuevo = negocioMapper.toEntity(request);
+        nuevo.setUsuario(existente.getUsuario());
 
-        Negocio guardado = negocioRepository.save(negocio);
+        Negocio guardado = negocioRepository.save(nuevo);
+        logAuditoria.registrar(guardado.getIdNegocio(),
+                "NEGOCIO_CREADO", "Negocio: " + guardado.getNombreNegocio());
         return negocioMapper.toResponse(guardado);
     }
 
     @Override
-    public List<NegocioResponse> listarPorUsuario(String idUsuario) {
-        return negocioRepository.findByUsuarioId(idUsuario)
+    public List<NegocioResponse> listarPorUsuarioAutenticado() {
+        String correo = SecurityContextHolder.getContext().getAuthentication().getName();
+        return negocioRepository.findByUsuario_Correo(correo)
                 .stream()
                 .map(negocioMapper::toResponse)
                 .toList();
@@ -63,6 +64,8 @@ public class NegocioImpl implements NegocioServicio {
         existente.setCapitalInicial(request.capitalInicial());
 
         Negocio actualizado = negocioRepository.save(existente);
+        logAuditoria.registrar(actualizado.getIdNegocio(),
+                "NEGOCIO_EDITADO", "Negocio: " + actualizado.getNombreNegocio());
         return negocioMapper.toResponse(actualizado);
     }
 
@@ -72,6 +75,7 @@ public class NegocioImpl implements NegocioServicio {
             throw new NegocioNoEncontradoException("Negocio no encontrado con id: " + id);
         }
         negocioRepository.deleteById(id);
+        logAuditoria.registrar(id, "NEGOCIO_ELIMINADO", "Negocio eliminado");
     }
 
     @Override
@@ -79,11 +83,9 @@ public class NegocioImpl implements NegocioServicio {
         if (!negocioRepository.existsById(idNegocio)) {
             throw new NegocioNoEncontradoException("Negocio no encontrado con id: " + idNegocio);
         }
-
         double totalIngresos = sumarPorTipo(idNegocio, "INGRESO");
         double totalEgresos = sumarPorTipo(idNegocio, "EGRESO");
         double totalGastos = sumarPorTipo(idNegocio, "GASTO");
-
         return totalIngresos - totalEgresos - totalGastos;
     }
 
@@ -92,7 +94,6 @@ public class NegocioImpl implements NegocioServicio {
         if (!negocioRepository.existsById(idNegocio)) {
             throw new NegocioNoEncontradoException("Negocio no encontrado con id: " + idNegocio);
         }
-
         double totalIngresos = sumarPorTipo(idNegocio, "INGRESO");
         double totalEgresos = sumarPorTipo(idNegocio, "EGRESO");
         double totalGastos = sumarPorTipo(idNegocio, "GASTO");
@@ -105,20 +106,13 @@ public class NegocioImpl implements NegocioServicio {
         return resumen;
     }
 
-    private double sumarPorTipo(String idNegocio, String nombreTipo) {
-        List<TipoMovimiento> tipos = tipoMovimientoRepository.findAll()
-                .stream()
-                .filter(tipo -> tipo.getNombre().equalsIgnoreCase(nombreTipo))
-                .toList();
 
-        double total = 0.0;
-        for (TipoMovimiento tipo : tipos) {
-            List<MovimientoFinanciero> movimientos =
-                    movimientoRepository.findByNegocioIdAndTipoMovimientoId(idNegocio, tipo.getIdTipoMovimiento());
-            for (MovimientoFinanciero movimiento : movimientos) {
-                total += movimiento.getMonto();
-            }
-        }
-        return total;
+    private double sumarPorTipo(String idNegocio, String nombreTipo) {
+        return movimientoRepository.findByNegocioId(idNegocio)
+                .stream()
+                .filter(m -> m.getTipoMovimiento() != null
+                        && nombreTipo.equalsIgnoreCase(m.getTipoMovimiento().getNombre()))
+                .mapToDouble(MovimientoFinanciero::getMonto)
+                .sum();
     }
 }

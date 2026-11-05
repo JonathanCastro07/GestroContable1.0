@@ -7,7 +7,6 @@ public record MovimientoFinancieroRequest(
         LocalDate fecha,
         String descricion,
         String negocioId,
-        String tipoId,
-        String origenId,
-        String periodoId
+        TipoMovimientoDto tipoMovimiento,
+        OrigenDto origen
 ) {}

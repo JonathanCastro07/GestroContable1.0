@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface LogAuditoriaRepository extends MongoRepository<LogAuditoria, String> {
 
-    List<LogAuditoria> findByUsuarioId(String usuarioId);
+    List<LogAuditoria> findByNegocioId(String negocioId);
     List<LogAuditoria> findByAccion(String accion);
 }

@@ -1,9 +1,8 @@
 package com.Proyecto.Gestor_Contable.controller;
 
-import com.Proyecto.Gestor_Contable.dtos.LoginRequest;
-import com.Proyecto.Gestor_Contable.dtos.LoginResponse;
-import com.Proyecto.Gestor_Contable.dtos.RegistroRequest;
-import com.Proyecto.Gestor_Contable.dtos.UsuarioResponse;
+import com.Proyecto.Gestor_Contable.dtos.*;
+import com.Proyecto.Gestor_Contable.security.JwtUtil;
+import com.Proyecto.Gestor_Contable.security.TokenBlacklistService;
 import com.Proyecto.Gestor_Contable.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,12 +19,12 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
     @Autowired
-    private com.Proyecto.Gestor_Contable.security.JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;
     @Autowired
-    private com.Proyecto.Gestor_Contable.security.TokenBlacklistService tokenBlacklistService;
+    private TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/registro")
-    public ResponseEntity<UsuarioResponse> registrarse(@RequestBody RegistroRequest request){
+    public ResponseEntity<RegistroResponse> registrarse(@RequestBody RegistroRequest request){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(usuarioService.registrarse(request));
     }
@@ -40,27 +39,6 @@ public class UsuarioController {
         String token = authHeader.substring(7);
         long segundosRestantes = jwtUtil.obtenerSegundosRestantes(token);
         tokenBlacklistService.agregarABlacklist(token, segundosRestantes);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping
-    public ResponseEntity<List<UsuarioResponse>> listar(){
-        return ResponseEntity.ok(usuarioService.listarTodo());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> buscarPorId(@PathVariable String id){
-        return ResponseEntity.ok(usuarioService.buscarPorId(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> actualizar(@PathVariable String id, @RequestBody RegistroRequest request){
-        return ResponseEntity.ok(usuarioService.actualizar(id, request));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable String id){
-        usuarioService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 }

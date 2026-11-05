@@ -24,7 +24,7 @@ public class PagoPeriodico implements Serializable {
     private boolean activo = true;
     private String descripcion;
     private String negocioId;
-    private String tipoMovimientoId;
-    private String origenId;
+    private Origen origen;
+    private TipoMovimiento tipoMovimiento;
 
 }

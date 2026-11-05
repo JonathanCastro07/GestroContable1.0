@@ -4,5 +4,6 @@ public record NegocioResponse(
         String idNegocio,
         String nombre,
         String tipoActividad,
-        double capitalInicial
+        double capitalInicial,
+        String rolPropietario
 ) {}
