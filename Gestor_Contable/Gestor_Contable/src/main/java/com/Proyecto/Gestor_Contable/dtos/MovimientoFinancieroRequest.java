@@ -1,10 +1,10 @@
 package com.Proyecto.Gestor_Contable.dtos;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record MovimientoFinancieroRequest(
         double monto,
-        LocalDate fecha,
+        LocalDateTime fecha,
         String descricion,
         String negocioId,
         TipoMovimientoDto tipoMovimiento,
