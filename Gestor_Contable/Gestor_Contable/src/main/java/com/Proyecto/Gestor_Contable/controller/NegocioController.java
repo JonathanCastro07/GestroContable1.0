@@ -40,11 +40,13 @@ public class NegocioController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("@negocioSecurity.esDueno(#idNegocio, authentication.name)")
     @GetMapping("/{id}/utilidad")
     public ResponseEntity<Double> calcularUtilidad(@PathVariable("id") String idNegocio){
         return ResponseEntity.ok(negocioServicio.calcularUtilidades(idNegocio));
     }
 
+    @PreAuthorize("@negocioSecurity.esDueno(#idNegocio, authentication.name)")
     @GetMapping("/{id}/financiero")
     public ResponseEntity<Object> verResumen(@PathVariable("id") String idNegocio){
         return ResponseEntity.ok(negocioServicio.verResumenFinanciero(idNegocio));

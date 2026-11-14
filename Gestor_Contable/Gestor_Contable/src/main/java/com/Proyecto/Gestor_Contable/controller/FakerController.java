@@ -6,6 +6,7 @@ import com.Proyecto.Gestor_Contable.dtos.LoginRequest;
 import com.Proyecto.Gestor_Contable.service.UsuarioService;
 import net.datafaker.Faker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
-
+@Profile("dev")
 @RestController
 public class FakerController {
 
@@ -47,7 +48,7 @@ public class FakerController {
     }
 
     @PostMapping("/api/test/generar-usuarios")
-    public ResponseEntity<String> generarUsuarios(@RequestParam(defaultValue = "1000") int cantidad){
+    public ResponseEntity<String> generarUsuarios(@RequestParam(defaultValue = "1") int cantidad){
         Faker faker = new Faker();
         String passwordCifrada = passwordEncoder.encode("Prueba123");
         List<Negocio> negocios = new ArrayList<>();
