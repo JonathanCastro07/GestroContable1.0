@@ -46,7 +46,7 @@ public class MovimientoServiceImpl implements MovimientoService {
         MovimientoFinanciero existente = movimientoRepository.findById(id)
                 .orElseThrow(() -> new MovimientoFinancieroNoEncontradoException("Movimiento no encontrado con id: " + id));
 
-        LocalDateTime fecha = request.fecha().atStartOfDay();
+        LocalDateTime fecha = request.fecha();
         existente.setMonto(request.monto());
         existente.setFecha(fecha);
         existente.setDescripcion(request.descricion());

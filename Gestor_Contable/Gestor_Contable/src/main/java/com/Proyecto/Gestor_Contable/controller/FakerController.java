@@ -6,6 +6,7 @@ import com.Proyecto.Gestor_Contable.dtos.LoginRequest;
 import com.Proyecto.Gestor_Contable.service.UsuarioService;
 import net.datafaker.Faker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
-
+@Profile("dev")
 @RestController
 public class FakerController {
 
@@ -47,7 +48,7 @@ public class FakerController {
     }
 
     @PostMapping("/api/test/generar-usuarios")
-    public ResponseEntity<String> generarUsuarios(@RequestParam(defaultValue = "1000") int cantidad){
+    public ResponseEntity<String> generarUsuarios(@RequestParam(defaultValue = "1") int cantidad){
         Faker faker = new Faker();
         String passwordCifrada = passwordEncoder.encode("Prueba123");
         List<Negocio> negocios = new ArrayList<>();
@@ -317,13 +318,34 @@ public class FakerController {
     }
 
     private List<MovimientoFinanciero> movimientosBasicos(Negocio negocio, int cantidad, Faker faker) {
-        String[] tipos = {"INGRESO", "EGRESO", "GASTO"};
+        // Mitad de los negocios rentables y mitad con pérdida
+        boolean rentable = random.nextDouble() < 0.5;
+        double pIngreso = rentable ? 0.55 + random.nextDouble() * 0.15
+                : 0.25 + random.nextDouble() * 0.10;
+        double pGasto = 0.25;
+
         List<MovimientoFinanciero> lista = new ArrayList<>();
         for (int i = 0; i < cantidad; i++) {
             LocalDateTime fecha = fechaAleatoria();
-            String tipo = tipos[random.nextInt(tipos.length)];
-            double monto = 10 + random.nextDouble() * 5000;
-            lista.add(armarMovimiento(negocio, fecha, tipo, redondear(monto), faker.commerce().productName(), faker));
+            double r = random.nextDouble();
+            String tipo;
+            double monto;
+            String descripcion;
+
+            if (r < pIngreso) {
+                tipo = "INGRESO";
+                monto = 150 + random.nextDouble() * 1850;
+                descripcion = "Venta de " + faker.commerce().productName();
+            } else if (r < pIngreso + pGasto) {
+                tipo = "GASTO";
+                monto = 10 + random.nextDouble() * 300;
+                descripcion = DESC_GASTOS[random.nextInt(DESC_GASTOS.length)];
+            } else {
+                tipo = "EGRESO";
+                monto = 300 + random.nextDouble() * 2500;
+                descripcion = "Pago a " + faker.company().name();
+            }
+            lista.add(armarMovimiento(negocio, fecha, tipo, redondear(monto), descripcion, faker));
         }
         return lista;
     }

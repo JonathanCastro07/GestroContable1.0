@@ -63,7 +63,7 @@ public class AnalisisFinancieroIAServiceImpl implements AnalisisFinancieroIAServ
                 "Ingresos: " + resumen.totalIngresos() + ", " +
                 "Egresos: " + resumen.totalEgresos() + ", " +
                 "Ganancia: " + resumen.totalGanancias() +
-                ". Da una recomendacion breve en espanol.";
+                ". Da una recomendacion breve en espanol, de maximo 100 palabras, en texto plano: sin markdown, sin asteriscos, sin titulos y sin listas.";
     }
 
     private String determinarTipoAlerta(MovimientoResumenResponse resumen) {

@@ -15,7 +15,7 @@ public class MovimientoFinancieroMapper {
     private EmbebidosMapper embebidos;
 
     public MovimientoFinanciero toEntity(MovimientoFinancieroRequest request) {
-        LocalDateTime fecha = request.fecha().atStartOfDay();
+        LocalDateTime fecha = request.fecha();
 
         MovimientoFinanciero movimiento = new MovimientoFinanciero();
         movimiento.setMonto(request.monto());
