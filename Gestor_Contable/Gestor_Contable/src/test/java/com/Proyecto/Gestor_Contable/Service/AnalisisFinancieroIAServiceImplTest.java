@@ -8,6 +8,7 @@ import com.Proyecto.Gestor_Contable.repository.AnalisisFinancieroIARepository;
 import com.Proyecto.Gestor_Contable.service.ClienteIAService;
 import com.Proyecto.Gestor_Contable.service.MovimientoService;
 import com.Proyecto.Gestor_Contable.service.lmpl.AnalisisFinancieroIAServiceImpl;
+import com.Proyecto.Gestor_Contable.service.lmpl.LogAuditoriaServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +31,7 @@ class AnalisisFinancieroIAServiceImplTest {
     @Mock AnalisisFinancieroIARepository analisisRepository;
     @Mock MovimientoService movimientoService;
     @Mock ClienteIAService clienteIAService;
+    @Mock LogAuditoriaServiceImpl logAuditoria;
 
     @InjectMocks
     AnalisisFinancieroIAServiceImpl service;
@@ -53,7 +55,7 @@ class AnalisisFinancieroIAServiceImplTest {
         AnalisisFinancieroIAResponse response = service.generarAnalisis("n1", "mensual");
 
         assertThat(response.id()).isEqualTo("a1");
-        assertThat(response.negocioid()).isEqualTo("n1");
+        assertThat(response.negocioId()).isEqualTo("n1");
         assertThat(response.textoGenerado()).isEqualTo("Vas muy bien");
         assertThat(response.tipoAlerta()).isEqualTo("TENDENCIA_POSITIVA");
         assertThat(response.fechaGeneracion()).isNotNull();
